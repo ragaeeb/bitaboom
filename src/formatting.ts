@@ -1,3 +1,8 @@
+export const isOnlyPunctuation = (text: string): boolean => {
+    const regex = /^[\u0020-\u002f\u003a-\u0040\u005b-\u0060\u007b-\u007e0-9٠-٩]+$/;
+    return regex.test(text);
+};
+
 export const addLineBreaksAfterPunctuation = (text: string): string => {
     // Define the punctuation marks that should trigger a new line
     const punctuation = /([.?!؟])/g;
@@ -70,6 +75,15 @@ export const cleanMultilines = (text: string): string => {
     return text.replace(/^ +| +$/gm, '');
 };
 
+export const cleanJunkFromText = (text: string): string => {
+    const newBody = cleanMultilines(text);
+    const lines = newBody.split('\n').filter((line) => {
+        return !line || (line.length > 1 && !isOnlyPunctuation(line));
+    });
+
+    return lines.join('\n').trim();
+};
+
 /**
  * Cleans unnecessary spaces before punctuation from text.
  * @param {string} text - The input text to apply the rule to.
@@ -95,6 +109,28 @@ export const condenseMultilinesToDouble = (text: string): string => {
  */
 export const condenseMultilinesToSingle = (text: string): string => {
     return text.replace(/(\n\s*){2,}/g, '\n');
+};
+
+/**
+ * replaces sequences of three or more dots with the ellipsis character (…).
+
+the sequence of ten dots ("..........") will be replaced by a single ellipsis character (…).
+The g flag ensures global replacement, and the {2,} quantifier will match two or more dots greedily, meaning it will try to match as many dots as possible.
+Therefore, all ten dots would be replaced by just one ellipsis character.
+ * @param {string} text - The input text to apply the rule to.
+ * @returns {string} - The modified text after applying the rule.
+ */
+export const condenseEllipsis = (text: string): string => {
+    return text.replace(/\.{2,}/g, '…');
+};
+
+/**
+ * Removes unnecessary spaces around slashes in references like "127 / 11" to "127/11".
+ * @param {string} text - The input text.
+ * @returns {string} - The text with spaces removed around slashes in references.
+ */
+export const reduceSpaceBetweenReference = (text: string): string => {
+    return text.replace(/(\d+)\s?\/\s?(\d+)/g, '$1/$2');
 };
 
 /**

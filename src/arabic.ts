@@ -3,6 +3,24 @@ export const convertUrduSymbolsToArabic = (text: string): string => {
 };
 
 /**
+ * This replaces various Arabic diacritics (tashkeel) and the tatweel (elongation character).
+Example:
+Input: مُحَمَّدٌ
+Output: محمد
+
+sanitize('أبـــتِـــكَةُ'); // returns 'ابتكه'
+
+ * @param {string} text - The input text to apply the rule to.
+ * @returns {string} - The modified text after applying the rule.
+ */
+export const removeTashkeel = (text: string): string => {
+    return text.replace(
+        /[\u0610\u0611\u0612\u0613\u0614\u0615\u0616\u0617\u0618\u0619\u061A\u064B\u064C\u064D\u064E\u064F\u0650\u0651\u0652\u0653\u0654\u0655\u0656\u0657\u0658\u065A\u065B\u065C\u065D\u065E\u0640]/g,
+        '',
+    );
+};
+
+/**
  * For plain-text Arabic content, removing Zero-Width Joiners (ZWJ) and other zero-width characters might still have some implications, but they would typically be less severe compared to rich text or text with mixed languages and complex scripts. Here are a few considerations:
 
 1. Ligature Formation:

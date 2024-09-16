@@ -3,11 +3,15 @@ import { describe, expect, it } from 'vitest';
 import {
     addLineBreaksAfterPunctuation,
     applySmartQuotes,
+    cleanJunkFromText,
     cleanMultilines,
     cleanSpacesBeforePeriod,
+    condenseEllipsis,
     condenseMultilinesToDouble,
     condenseMultilinesToSingle,
     formatStringBySentence,
+    isOnlyPunctuation,
+    reduceSpaceBetweenReference,
     reduceSpaces,
     removeStyling,
 } from './formatting';
@@ -81,6 +85,74 @@ describe('formatting', () => {
         });
     });
 
+    describe('cleanJunkFromText', () => {
+        it('should remove the first line if it is only punctuation', () => {
+            const input = '!@#\nThis is a test.';
+            const output = 'This is a test.';
+            expect(cleanJunkFromText(input)).toBe(output);
+        });
+
+        it('should remove the last line if it is only punctuation', () => {
+            const input = 'This is a test.\n!@#';
+            const output = 'This is a test.';
+            expect(cleanJunkFromText(input)).toBe(output);
+        });
+
+        it('should remove both the first and last line if they are only punctuation', () => {
+            const input = '!@#\nThis is a test.\n!@#';
+            const output = 'This is a test.';
+            expect(cleanJunkFromText(input)).toBe(output);
+        });
+
+        it('should not remove any lines if none are only punctuation', () => {
+            const input = 'First line.\nThis is a test.\nLast line.';
+            const output = 'First line.\nThis is a test.\nLast line.';
+            expect(cleanJunkFromText(input)).toBe(output);
+        });
+
+        it('should remove the first line if it has length 1', () => {
+            const input = 'A\nThis is a test.';
+            const output = 'This is a test.';
+            expect(cleanJunkFromText(input)).toBe(output);
+        });
+
+        it('should remove the last line if it has length 1', () => {
+            const input = 'This is a test.\nA';
+            const output = 'This is a test.';
+            expect(cleanJunkFromText(input)).toBe(output);
+        });
+
+        it('should remove both the first and last line if they have length 1', () => {
+            const input = 'A\nThis is a test.\nB';
+            const output = 'This is a test.';
+            expect(cleanJunkFromText(input)).toBe(output);
+        });
+
+        it('should return an empty string if the input is a single punctuation line', () => {
+            const input = '!@#';
+            const output = '';
+            expect(cleanJunkFromText(input)).toBe(output);
+        });
+
+        it('should return an empty string if the input is a single character line', () => {
+            const input = 'A';
+            const output = '';
+            expect(cleanJunkFromText(input)).toBe(output);
+        });
+
+        it('should handle input with only valid lines correctly', () => {
+            const input = ' First line.\nSecond line.\nThird line. ';
+            const output = 'First line.\nSecond line.\nThird line.';
+            expect(cleanJunkFromText(input)).toBe(output);
+        });
+
+        it('should handle input with mixed valid and invalid lines correctly', () => {
+            const input = 'A\nFirst line.\nSecond line.\nC\nThird line.\nB';
+            const output = 'First line.\nSecond line.\nThird line.';
+            expect(cleanJunkFromText(input)).toBe(output);
+        });
+    });
+
     describe('cleanMultilineSpaces', () => {
         it('removes the spaces', () => {
             expect(cleanMultilines('This has    \nmany spaces  \n\nNext line')).toEqual(
@@ -128,6 +200,12 @@ describe('formatting', () => {
 
         it('no-op', () => {
             expect(cleanSpacesBeforePeriod('this is')).toEqual('this is');
+        });
+    });
+
+    describe('condenseEllipsis', () => {
+        it('should condense the periods into an ellipsis', () => {
+            expect(condenseEllipsis('This is some text...')).toEqual('This is some text…');
         });
     });
 
@@ -203,6 +281,78 @@ describe('formatting', () => {
             const lines = ['(1) النص الأول (۱) حديث صحيح (2) النص الثاني (۲).'];
             const actual = formatStringBySentence(lines.join('\n'));
             expect(actual.split('\n')).toEqual(lines);
+        });
+    });
+
+    describe('isOnlyPunctuation', () => {
+        it('should return true for a string of punctuation characters', () => {
+            expect(isOnlyPunctuation('!?.,:;-')).toBeTruthy();
+        });
+
+        it('should return false for a string containing alphanumeric characters', () => {
+            expect(isOnlyPunctuation('abc!?')).toBeFalsy();
+        });
+
+        it('should return false for an empty string', () => {
+            expect(isOnlyPunctuation('')).toBeFalsy();
+        });
+
+        it('should return true for a string of mixed punctuation characters', () => {
+            expect(isOnlyPunctuation('!@#$%^&*()_+{}|:"<>?[]\\;\',./~`')).toBeTruthy();
+        });
+
+        it('should return false for a string with spaces', () => {
+            expect(isOnlyPunctuation(' , ')).toBeTruthy();
+        });
+
+        it('should return true for a string with a single punctuation character', () => {
+            expect(isOnlyPunctuation('!')).toBeTruthy();
+        });
+
+        it('should return false for a string with letters and numbers', () => {
+            expect(isOnlyPunctuation('123abc')).toBeFalsy();
+        });
+
+        it('should return true for a string containing only dash/hyphen characters', () => {
+            expect(isOnlyPunctuation('---')).toBeTruthy();
+        });
+
+        it('should return true for a string containing only numeric', () => {
+            expect(isOnlyPunctuation('210')).toBeTruthy();
+        });
+
+        it('should return true for a string containing only Arabic numerals', () => {
+            expect(isOnlyPunctuation('٨٢٦')).toBeTruthy();
+        });
+    });
+
+    describe('reduceSpaceBetweenReference', () => {
+        it('should remove spaces around slashes in number references', () => {
+            const input = '127 / 11';
+            const expected = '127/11';
+            expect(reduceSpaceBetweenReference(input)).toEqual(expected);
+        });
+
+        it('should handle cases without spaces around the slash', () => {
+            const input = '127/11';
+            const expected = '127/11';
+            expect(reduceSpaceBetweenReference(input)).toEqual(expected);
+        });
+
+        it('should handle cases with multiple spaces around the slash', () => {
+            const input = '127   /   11';
+            expect(reduceSpaceBetweenReference(input)).toEqual(input);
+        });
+
+        it('should not change text without number references', () => {
+            const input = 'This is some text';
+            expect(reduceSpaceBetweenReference(input)).toEqual(input);
+        });
+
+        it('clean spaces between reference', () => {
+            expect(reduceSpaceBetweenReference('this is 127 / 11 with 127 /2 and 122 /3 and 22/1')).toEqual(
+                'this is 127/11 with 127/2 and 122/3 and 22/1',
+            );
         });
     });
 

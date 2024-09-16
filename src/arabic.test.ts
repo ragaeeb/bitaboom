@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { convertUrduSymbolsToArabic, removeZeroWidthJoiners } from './arabic';
+import { convertUrduSymbolsToArabic, removeTashkeel, removeZeroWidthJoiners } from './arabic';
 
 describe('arabic', () => {
     describe('convertUrduSymbolsToArabic', () => {
@@ -8,6 +8,16 @@ describe('arabic', () => {
             expect(convertUrduSymbolsToArabic('ھذا كذب موضوع باتفاق أھل العلم بالحدیث، فیجب تكذیبھ ورده')).toEqual(
                 'هذا كذب موضوع باتفاق أهل العلم بالحديث، فيجب تكذيبه ورده',
             );
+        });
+    });
+
+    describe('removeTashkeel', () => {
+        it('should remove tatweel', () => {
+            expect(removeTashkeel('أبـــتِـــكَةُ')).toEqual('أبتكة');
+        });
+
+        it('should remove tashkeel', () => {
+            expect(removeTashkeel('مُحَمَّدٌ')).toEqual('محمد');
         });
     });
 
