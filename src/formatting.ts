@@ -14,6 +14,35 @@ export const addLineBreaksAfterPunctuation = (text: string): string => {
 };
 
 /**
+ * Adds space before punctuation.
+  * 1) "This is the first line .
+This is the second line."
+To turn to: "This is the first line.
+This is the second line."
+
+So it should not replace the line breaks, only the spaces.
+
+2) "“I have the book !” 'I have it . '" should turn to "“I have the book!” 'I have it.'"
+Notice that we don't want add the extra space in between the punctuation and the apostrophe or quotation mark.
+
+"A string like this .Should turn into that ! But what about  ?   This one ; However ...it goes without saying."
+
+Should turn into:
+"A string like this. Should turn into that! But what about? This one; However...it goes without saying."
+
+Should not add spaces for brackets and quoted text like:
+“This is some text!” [Something!] (Something!)
+ * @param {string} text - The input text to apply the rule to.
+ * @returns {string} - The modified text after applying the rule.
+ */
+export const addSpaceBeforeAndAfterPunctuation = (text: string): string => {
+    return text
+        .replace(/( ?)([.!?,،؟;؛])((?![ '”“\)"\]\n])|(?=\s{2,}))/g, '$1$2 ')
+        .replace(/\s([.!?,،؟;؛])\s*([ '”“\)"\]\n])/g, '$1$2')
+        .replace(/([^\s\w\d'”“\)"\]]+)\s+([.!?,،؟;؛])|([.!?,،؟;؛])\s+$/g, '$1$2$3');
+};
+
+/**
  * Turns regular double quotes surrounding a body of text into fancy smart quotes. Then it looks for the character `”` (a closing double quotation mark) at the beginning of a string.
  * If found, it replaces it with the character `“` (an opening double quotation mark).
  * This rule ensures that if a string starts with a closing quotation mark (which is typically an error or oversight), it gets corrected to start with an opening quotation mark.
@@ -28,39 +57,13 @@ export const applySmartQuotes = (text: string): string => {
         .replace(/^”/g, '“');
 };
 
-export const formatStringBySentence = (input: string): string => {
-    const footnoteRegex = /^\((?:\d+|۱|۲|۳|۴|۵|۶|۷|۸|۹)\)\s/;
-    const sentences: string[] = [];
-    const lines = input.split('\n');
-    let currentSentence = '';
-
-    lines.forEach((line) => {
-        const trimmedLine = line.trim();
-        const isFootnote = footnoteRegex.test(trimmedLine);
-        const isNumber = /^\(\d+\/\d+\)/.test(trimmedLine);
-
-        if (isFootnote && !isNumber) {
-            if (currentSentence) {
-                sentences.push(currentSentence.trim());
-                currentSentence = '';
-            }
-            sentences.push(trimmedLine);
-        } else {
-            currentSentence += `${trimmedLine} `;
-            const lastChar = currentSentence.trim().slice(-1);
-            if (/[.!؟]/.test(lastChar)) {
-                sentences.push(currentSentence.trim());
-                currentSentence = '';
-            }
-        }
-    });
-
-    // Add any remaining text to the output
-    if (currentSentence) {
-        sentences.push(currentSentence.trim());
-    }
-
-    return sentences.join('\n');
+/**
+ * Replaces the literal new line character or the carriage return with a line break.
+ * @param {string} text - The input text to apply the rule to.
+ * @returns {string} - The modified text after applying the rule.
+ */
+export const cleanLiteralNewLines = (text: string): string => {
+    return text.replace(/\\n|\r/g, '\n');
 };
 
 /**
@@ -103,6 +106,15 @@ export const condenseAsterisks = (text: string): string => {
 };
 
 /**
+ * replaces occurrences of .:. with :, as well as .: and :. with :
+ * @param {string} text - The input text to apply the rule to.
+ * @returns {string} - The modified text after applying the rule.
+ */
+export const condenseColons = (text: string): string => {
+    return text.replace(/[\.-]?:[\.-]?/g, ':');
+};
+
+/**
  * Reduces multiple (3 or more) consecutive line breaks to exactly 2 line breaks.
  * @param {string} text - The input text to apply the rule to.
  * @returns {string} - The modified text after applying the rule.
@@ -140,6 +152,41 @@ export const condenseEllipsis = (text: string): string => {
  */
 export const doubleToSingleBrackets = (text: string): string => {
     return text.replace(/(\(|\)){2,}|(\[|\]){2,}/g, '$1$2');
+};
+
+export const formatStringBySentence = (input: string): string => {
+    const footnoteRegex = /^\((?:\d+|۱|۲|۳|۴|۵|۶|۷|۸|۹)\)\s/;
+    const sentences: string[] = [];
+    const lines = input.split('\n');
+    let currentSentence = '';
+
+    lines.forEach((line) => {
+        const trimmedLine = line.trim();
+        const isFootnote = footnoteRegex.test(trimmedLine);
+        const isNumber = /^\(\d+\/\d+\)/.test(trimmedLine);
+
+        if (isFootnote && !isNumber) {
+            if (currentSentence) {
+                sentences.push(currentSentence.trim());
+                currentSentence = '';
+            }
+            sentences.push(trimmedLine);
+        } else {
+            currentSentence += `${trimmedLine} `;
+            const lastChar = currentSentence.trim().slice(-1);
+            if (/[.!؟]/.test(lastChar)) {
+                sentences.push(currentSentence.trim());
+                currentSentence = '';
+            }
+        }
+    });
+
+    // Add any remaining text to the output
+    if (currentSentence) {
+        sentences.push(currentSentence.trim());
+    }
+
+    return sentences.join('\n');
 };
 
 /**
@@ -234,6 +281,15 @@ export const removeBoldStyling = (text: string): string => {
 
     // Remove combining marks (diacritics) and stylistic characters from the string
     return normalizedString.replace(/[\u0300-\u036f]/g, '').trim();
+};
+
+/**
+ * turns: “ Fasting is during the winter. ” into “Fasting is during the winter.”
+ * @param {string} text - The input text to apply the rule to.
+ * @returns {string} - The modified text after applying the rule.
+ */
+export const removeSpaceInsideQuotedText = (text: string): string => {
+    return text.replace(/([“”"]|«) *(.*?) *([“”"]|»)/g, '$1$2$3');
 };
 
 export const removeStyling = (text: string): string => {

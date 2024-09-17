@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
     convertUrduSymbolsToArabic,
+    englishToArabicComma,
     fixTrailingWow,
     insertSpaceBetweenArabicTextAndNumber,
     removeEnglishLettersAndSymbols,
@@ -17,6 +18,12 @@ describe('arabic', () => {
             expect(convertUrduSymbolsToArabic('ھذا كذب موضوع باتفاق أھل العلم بالحدیث، فیجب تكذیبھ ورده')).toEqual(
                 'هذا كذب موضوع باتفاق أهل العلم بالحديث، فيجب تكذيبه ورده',
             );
+        });
+    });
+
+    describe('englishToArabicComma', () => {
+        it('should turn the english to the Arabic comma', () => {
+            expect(englishToArabicComma('This, is')).toEqual('This، is');
         });
     });
 

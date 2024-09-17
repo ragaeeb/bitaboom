@@ -2,11 +2,14 @@ import { describe, expect, it } from 'vitest';
 
 import {
     addLineBreaksAfterPunctuation,
+    addSpaceBeforeAndAfterPunctuation,
     applySmartQuotes,
     cleanJunkFromText,
+    cleanLiteralNewLines,
     cleanMultilines,
     cleanSpacesBeforePeriod,
     condenseAsterisks,
+    condenseColons,
     condenseEllipsis,
     condenseMultilinesToDouble,
     condenseMultilinesToSingle,
@@ -15,6 +18,7 @@ import {
     isOnlyPunctuation,
     reduceSpaceBetweenReference,
     reduceSpaces,
+    removeSpaceInsideQuotedText,
     removeStyling,
 } from './formatting';
 
@@ -75,6 +79,35 @@ describe('formatting', () => {
         });
     });
 
+    describe('addSpaceBeforeAndAfterPunctuation', () => {
+        it('should replace the spaces not the line breaks', () => {
+            expect(addSpaceBeforeAndAfterPunctuation('This is the first line .\nThis is the second line.')).toEqual(
+                'This is the first line.\nThis is the second line.',
+            );
+        });
+
+        it('should remove the extra space between the apostrophe and question mark', () => {
+            expect(addSpaceBeforeAndAfterPunctuation("“I have the book !” 'I have it . '")).toEqual(
+                "“I have the book!” 'I have it.'",
+            );
+        });
+
+        it('should handle the semicolons and colons', () => {
+            expect(
+                addSpaceBeforeAndAfterPunctuation(
+                    'A string like this .Should turn into that ! But what about  ?   This one ; However ...it goes without saying.',
+                ),
+            ).toEqual(
+                'A string like this. Should turn into that! But what about ? This one; However... it goes without saying.',
+            );
+        });
+        it('should not add spaces for brackets and quoted text', () => {
+            expect(addSpaceBeforeAndAfterPunctuation('“This is some text!” [Something!] (Something!)')).toEqual(
+                '“This is some text!” [Something!] (Something!)',
+            );
+        });
+    });
+
     describe('applySmartQuotes', () => {
         it('quotes', () => {
             expect(applySmartQuotes('The "quick brown" fox jumped "right" over the lazy dog.')).toEqual(
@@ -84,6 +117,12 @@ describe('formatting', () => {
 
         it('no-op', () => {
             expect(applySmartQuotes('this is')).toEqual('this is');
+        });
+    });
+
+    describe('cleanLiteralNewLines', () => {
+        it('should turn the literal new line text into line break', () => {
+            expect(cleanLiteralNewLines('A\\nB')).toEqual('A\nB');
         });
     });
 
@@ -208,6 +247,12 @@ describe('formatting', () => {
     describe('condenseAsterisks', () => {
         it('should reduce the asterisks', () => {
             expect(condenseAsterisks('* * *')).toEqual('*');
+        });
+    });
+
+    describe('condenseColons', () => {
+        it('should remove the unnecessary punctuation around the colon', () => {
+            expect(condenseColons('This.:. and :, and .: and :.')).toEqual('This: and :, and : and :');
         });
     });
 
@@ -404,6 +449,14 @@ describe('formatting', () => {
 
         it('no-op', () => {
             expect(reduceSpaces('this is')).toEqual('this is');
+        });
+    });
+
+    describe('removeSpaceInsideQuotedText', () => {
+        it('should trim the space inside the quotes', () => {
+            expect(removeSpaceInsideQuotedText('“ Fasting is during the winter. ”')).toEqual(
+                '“Fasting is during the winter.”',
+            );
         });
     });
 

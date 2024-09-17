@@ -1,4 +1,44 @@
 /**
+ * some example texts that would be affected by the cleanSymbols function:
+
+Text with numerical markers in parentheses:
+Input: "This is a text (1) (2/3)"
+Output: "This is a text"
+
+Text with numerical markers in square brackets:
+Input: "Another example [1] [1/2]"
+Output: "Another example"
+
+Text with part references:
+Input: "Part references 1/2 2/3/4"
+Output: "Part references"
+
+Text with various symbols:
+Input: "Hello، world! {test} <example> …"
+Output: "Hello world test example"
+
+Text with mixed elements:
+Input: "Mixed (1) [2] «3» 1/2 [1/2] ;.,!"
+Output: "Mixed"
+
+Text with backslashes and forward slashes:
+Input: "File path is C:\\folder\\file / Unix path is /usr/bin/"
+Output: "File path is C folder file Unix path is usr bin"
+
+Text with Arabic symbols and characters:
+Input: "Arabic example: ﴿س﴾ ۝"
+Output: "Arabic example"
+ * @param {string} text - The input text to apply the rule to.
+ * @returns {string} - The modified text after applying the rule.
+ */
+export const cleanSymbolsAndPartReferences = (text: string): string => {
+    return text.replace(
+        / *\(?:\d+(?:\/\d+){0,2}\)? *| *\[\d+(?:\/\d+)?\] *| *«\d+» *|\d+\/\d+(?:\/\d+)?|[،§{}۝؍‎﴿﴾<>;_؟»«:!،؛\[\]…ـ¬\.\\\/\*\(\)"]/g,
+        ' ',
+    );
+};
+
+/**
  * removes -[46]-
  * @param {string} text - The input text to apply the rule to.
  * @returns {string} - The modified text after applying the rule.

@@ -3,6 +3,15 @@ export const convertUrduSymbolsToArabic = (text: string): string => {
 };
 
 /**
+ * Replaces English comma with Arabic one.
+ * @param {string} text - The input text to apply the rule to.
+ * @returns {string} - The modified text after applying the rule.
+ */
+export const englishToArabicComma = (text: string): string => {
+    return text.replace(/,|-،/g, '،');
+};
+
+/**
  * Fixes "عليكم و رحمة" to "عليكم ورحمة". This can be improved since it won't work for beginning of sentences, etc,
  * but for now it's a best effort.
 
