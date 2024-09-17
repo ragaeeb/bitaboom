@@ -7,6 +7,7 @@ import {
     insertSpaceBetweenArabicTextAndNumber,
     removeEnglishLettersAndSymbols,
     removeNonIndexSignatures,
+    removeSingularCodes,
     removeSolitaryArabicLetters,
     removeTashkeel,
     removeZeroWidthJoiners,
@@ -151,6 +152,12 @@ describe('arabic', () => {
 
         it('should be a no-op', () => {
             expect(removeSolitaryArabicLetters('لا شيء هنا')).toBe('لا شيء هنا');
+        });
+    });
+
+    describe('removeSingularCodes', () => {
+        it('should remove the single letters in brackets', () => {
+            expect(removeSingularCodes('A B [س] C')).toEqual('A B  C');
         });
     });
 

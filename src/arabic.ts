@@ -65,6 +65,16 @@ export const removeNonIndexSignatures = (text: string): string => {
 };
 
 /**
+ * The function removeSingularCodes aims to remove characters that are enclosed in square brackets [] or parentheses () and are within the range of Arabic letters (\u0621-\u064A) or Arabic-Indic numerals (\u0660-\u0669).
+should remove [س] and (س)
+ * @param {string} text - The input text to apply the rule to.
+ * @returns {string} - The modified text after applying the rule.
+ */
+export const removeSingularCodes = (text: string): string => {
+    return text.replace(/[\[\({][\u0621-\u064A\u0660-\u0669][\]\)}]/g, '');
+};
+
+/**
  * Applies the removeSolitaryArabicLetters rule to the input text.
  * @param {string} text - The input text to apply the rule to.
  * @returns {string} - The modified text after applying the rule.

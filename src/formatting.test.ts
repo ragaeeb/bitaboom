@@ -13,6 +13,7 @@ import {
     condenseEllipsis,
     condenseMultilinesToDouble,
     condenseMultilinesToSingle,
+    condensePeriods,
     doubleToSingleBrackets,
     formatStringBySentence,
     isOnlyPunctuation,
@@ -289,6 +290,12 @@ describe('formatting', () => {
 
         it('should remove the multiple line breaks', () => {
             expect(condenseMultilinesToSingle('This\n\nis\n\n\nsome\nlines')).toEqual('This\nis\nsome\nlines');
+        });
+    });
+
+    describe('condensePeriods', () => {
+        it('should remove the unnecessary punctuation around the colon', () => {
+            expect(condensePeriods('This . . . . . . . . and')).toEqual('This . . . . and');
         });
     });
 

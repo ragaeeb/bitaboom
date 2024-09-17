@@ -115,6 +115,16 @@ export const condenseColons = (text: string): string => {
 };
 
 /**
+ * replace occurrences of a period followed by one or more spaces and
+another period (". . . . . . . .") with a single period.
+ * @param {string} text - The input text to apply the rule to.
+ * @returns {string} - The modified text after applying the rule.
+ */
+export const condensePeriods = (text: string): string => {
+    return text.replace(/\. +\./g, '.');
+};
+
+/**
  * Reduces multiple (3 or more) consecutive line breaks to exactly 2 line breaks.
  * @param {string} text - The input text to apply the rule to.
  * @returns {string} - The modified text after applying the rule.
