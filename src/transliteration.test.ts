@@ -1,8 +1,22 @@
 import { describe, expect, it } from 'vitest';
 
-import { convertArabicPrefixesToAl, getInitials, normalize, stripPrefixes } from './transliteration';
+import {
+    condenseDoubleApostrophesToSingle,
+    convertArabicPrefixesToAl,
+    fixSalutations,
+    getInitials,
+    normalize,
+    normalizeApostrophes,
+    stripPrefixes,
+} from './transliteration';
 
 describe('transliteration', () => {
+    describe('condenseDoubleApostrophesToSingle', () => {
+        it('should remove the two apostrophes to one', () => {
+            expect(condenseDoubleApostrophesToSingle('ʿulamāʾʾ')).toEqual('ʿulamāʾ');
+        });
+    });
+
     describe('convertArabicPrefixesToAl', () => {
         it('should replace all the al-s', () => {
             expect(
@@ -57,6 +71,62 @@ describe('transliteration', () => {
         });
     });
 
+    describe('fixSalutations', () => {
+        it('Messenger of Allah (*)', () => {
+            expect(fixSalutations('Then the Messenger of Allah (sallahu alayhi wasallam) said')).toEqual(
+                'Then the Messenger of Allah ﷺ said',
+            );
+        });
+
+        it('Messenger (*)', () => {
+            expect(fixSalutations('Then the Messenger (sallahu alayhi wasallam) said')).toEqual(
+                'Then the Messenger ﷺ said',
+            );
+        });
+
+        it('Messenger (peace*)', () => {
+            expect(fixSalutations('Then the Messenger (peace and blessings be upon him) said')).toEqual(
+                'Then the Messenger ﷺ said',
+            );
+        });
+
+        it('Messenger (May peace*)', () => {
+            expect(fixSalutations(`Allah's Messenger (May peace and blessings be upon him) said`)).toEqual(
+                `Allah's Messenger ﷺ said`,
+            );
+        });
+
+        it('Messenger (Prophet peace*)', () => {
+            expect(fixSalutations(`Prophet (May peace and blessings be upon him) said`)).toEqual(`Prophet ﷺ said`);
+        });
+
+        it('Prophet (*)', () => {
+            expect(fixSalutations('Then the Prophet (sallahu alayhi wasallam) said')).toEqual(
+                'Then the Prophet ﷺ said',
+            );
+        });
+
+        it('Muhammad (*)', () => {
+            expect(fixSalutations('Then Muhammad (sallahu alayhi wasallam) said')).toEqual('Then Muhammad ﷺ said');
+        });
+
+        it('Muḥammad (*)', () => {
+            expect(fixSalutations('Then Muḥammad (sallahu alayhi wasallam) said')).toEqual('Then Muḥammad ﷺ said');
+        });
+
+        it('Must start with s', () => {
+            expect(fixSalutations('Then Muḥammad (xsallahu alayhi wasallam) said')).toEqual(
+                'Then Muḥammad (xsallahu alayhi wasallam) said',
+            );
+        });
+
+        it('Must end with m', () => {
+            expect(fixSalutations('Then Muḥammad (sallahu alayhi wasalla) said')).toEqual(
+                'Then Muḥammad (sallahu alayhi wasalla) said',
+            );
+        });
+    });
+
     describe('normalize', () => {
         it('should strip out dashes', () => {
             expect(normalize('Al-Jadwal')).toEqual('AlJadwal');
@@ -68,6 +138,12 @@ describe('transliteration', () => {
 
         it('should strip out apostrophes', () => {
             expect(normalize('`ʾʿ-')).toEqual('');
+        });
+    });
+
+    describe('normalizeApostrophes', () => {
+        it('should turn all the apostrophe characters to the regular one', () => {
+            expect(normalizeApostrophes(`‛ulama’ al-su‘`)).toEqual("'ulama' al-su'");
         });
     });
 

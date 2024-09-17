@@ -3,6 +3,68 @@ export const convertUrduSymbolsToArabic = (text: string): string => {
 };
 
 /**
+ * Fixes "عليكم و رحمة" to "عليكم ورحمة". This can be improved since it won't work for beginning of sentences, etc,
+ * but for now it's a best effort.
+
+it('should fix trailing wow', () => {
+    const { formatted, cleaned } = deepClean('السلام عليكم و رحمة الله وبركاته الطرخون او ورق و');
+ * @param {string} text - The input text to apply the rule to.
+ * @returns {string} - The modified text after applying the rule.
+ */
+export const fixTrailingWow = (text: string): string => {
+    return text.replace(/ و /g, ' و');
+};
+
+/**
+ * Adds a space in between Arabic text and a number.
+الآية37
+should become الآية 37
+
+قال29
+should become قال 29.
+ * @param {string} text - The input text to apply the rule to.
+ * @returns {string} - The modified text after applying the rule.
+ */
+export const insertSpaceBetweenArabicTextAndNumber = (text: string): string => {
+    return text.replace(/([\u0600-\u06FF]+)(\d+)/g, '$1 $2');
+};
+
+/**
+ * Removes English letters and symbols from the text.
+ * @param {string} text - The input text to apply the rule to.
+ * @returns {string} - The modified text after applying the rule.
+ */
+export const removeEnglishLettersAndSymbols = (text: string): string => {
+    return text.replace(/[a-zA-Z]+[0-9]*|[¬§`ﷺ=]|\/{2,}|&/g, ' ');
+};
+
+/**
+ * match all single-digit numbers that are found in between two arabic texts.  * Replaces numbers in a sequence surrounded by Arabic text such as:
+سنه 695 6 واكثر
+(?<![0-9] ?)- will match a dash not preceded by a number.
+\b\d(\s\d+)*\b(?=[\u0600-\u06FF]) will match sequences of numbers separated by spaces followed by Arabic text.
+(?<=[\u0600-\u06FF])\b\d(\s\d+)*\b will match sequences of numbers separated by spaces preceded by Arabic text.
+For example:
+"وهب 3 وقال" should remove the "3". But "لوحه 121 الجرح" should not remove the 121 since it is not a single digit.
+ * @param {string} text - The input text to apply the rule to.
+ * @returns {string} - The modified text after applying the rule.
+ */
+export const removeNonIndexSignatures = (text: string): string => {
+    return text
+        .replace(/(?<![0-9] ?)-|(?<=[\u0600-\u06FF])\s?\d\s?(?=[\u0600-\u06FF])/g, ' ')
+        .replace(/(?<=[\u0600-\u06FF]\s)(\d+\s)+\d+(?=(\s[\u0600-\u06FF]|$))/g, ' ');
+};
+
+/**
+ * Applies the removeSolitaryArabicLetters rule to the input text.
+ * @param {string} text - The input text to apply the rule to.
+ * @returns {string} - The modified text after applying the rule.
+ */
+export const removeSolitaryArabicLetters = (text: string): string => {
+    return text.replace(/(^| )[\u0621-\u064A]( |$)/g, ' ');
+};
+
+/**
  * This replaces various Arabic diacritics (tashkeel) and the tatweel (elongation character).
 Example:
 Input: مُحَمَّدٌ

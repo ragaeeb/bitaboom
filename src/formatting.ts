@@ -94,6 +94,15 @@ export const cleanSpacesBeforePeriod = (text: string): string => {
 };
 
 /**
+ * Turns one or more asterisks in a row to a single one.
+ * @param {string} text - The input text to apply the rule to.
+ * @returns {string} - The modified text after applying the rule.
+ */
+export const condenseAsterisks = (text: string): string => {
+    return text.replace(/(\*\s*)+/g, '*');
+};
+
+/**
  * Reduces multiple (3 or more) consecutive line breaks to exactly 2 line breaks.
  * @param {string} text - The input text to apply the rule to.
  * @returns {string} - The modified text after applying the rule.
@@ -122,6 +131,15 @@ Therefore, all ten dots would be replaced by just one ellipsis character.
  */
 export const condenseEllipsis = (text: string): string => {
     return text.replace(/\.{2,}/g, '…');
+};
+
+/**
+ * Replaces texts that have two opening & closing brackets and replace sit with a single one.
+ * @param {string} text - The input text to apply the rule to.
+ * @returns {string} - The modified text after applying the rule.
+ */
+export const doubleToSingleBrackets = (text: string): string => {
+    return text.replace(/(\(|\)){2,}|(\[|\]){2,}/g, '$1$2');
 };
 
 /**

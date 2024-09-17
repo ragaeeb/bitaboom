@@ -13,11 +13,43 @@ export const convertArabicPrefixesToAl = (text: string): string => {
         .replace(/al- (.+?)\b/g, 'al-$1');
 };
 
+/**
+ * Corrects ʿ that is part of the target from having ʿ twice. Corrects words like ʿulamāʾʾ to ʿulamāʾ
+ * @param {string} text - The input text to apply the rule to.
+ * @returns {string} - The modified text after applying the rule.
+ */
+export const condenseDoubleApostrophesToSingle = (text: string): string => {
+    return text.replace(/ʿʿ/g, 'ʿ').replace(/ʾʾ/g, 'ʾ');
+};
+
+/**
+ * Anything with "peace Muhammad s....m" replaces with the salutation. Then replaces texts that have comma between the salutation with just the salutation.
+ * @param {string} text - The input text to apply the rule to.
+ * @returns {string} - The modified text after applying the rule.
+ */
+export const fixSalutations = (text: string): string => {
+    return text
+        .replace(
+            /\(peace be upon him\)|(Messenger of (Allah|Allāh)|Messenger|Prophet|Mu[hḥ]ammad) *\((s[^)]*m|peace[^)]*him|May[^)]*him|may[^)]*him)\)*/gi,
+            '$1 ﷺ',
+        )
+        .replace(/,\s*ﷺ\s*,/g, ' ﷺ');
+};
+
 export const normalize = (input: string) => {
     return input
         .normalize('NFKD')
         .replace(/[\u0300-\u036f]/g, '')
         .replace(/`|ʾ|ʿ|-/g, '');
+};
+
+/**
+ * Turns all apostrophe variations to the actual apostrophe character to simplify word substitutions.
+ * @param {string} text - The input text to apply the rule to.
+ * @returns {string} - The modified text after applying the rule.
+ */
+export const normalizeApostrophes = (text: string): string => {
+    return text.replace(/‛|’|‘/g, "'");
 };
 
 export const stripPrefixes = (text: string): string => {

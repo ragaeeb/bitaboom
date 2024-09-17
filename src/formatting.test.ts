@@ -6,9 +6,11 @@ import {
     cleanJunkFromText,
     cleanMultilines,
     cleanSpacesBeforePeriod,
+    condenseAsterisks,
     condenseEllipsis,
     condenseMultilinesToDouble,
     condenseMultilinesToSingle,
+    doubleToSingleBrackets,
     formatStringBySentence,
     isOnlyPunctuation,
     reduceSpaceBetweenReference,
@@ -203,6 +205,12 @@ describe('formatting', () => {
         });
     });
 
+    describe('condenseAsterisks', () => {
+        it('should reduce the asterisks', () => {
+            expect(condenseAsterisks('* * *')).toEqual('*');
+        });
+    });
+
     describe('condenseEllipsis', () => {
         it('should condense the periods into an ellipsis', () => {
             expect(condenseEllipsis('This is some text...')).toEqual('This is some text…');
@@ -231,11 +239,44 @@ describe('formatting', () => {
 
         it('should not change single line breaks', () => {
             const input = 'This is line 1\nThis is line 2';
-            expect(condenseMultilinesToSingle(input)).toBe(input);
+            expect(condenseMultilinesToSingle(input)).toEqual(input);
         });
 
         it('should remove the multiple line breaks', () => {
             expect(condenseMultilinesToSingle('This\n\nis\n\n\nsome\nlines')).toEqual('This\nis\nsome\nlines');
+        });
+    });
+
+    describe('doubleToSingleBrackets', () => {
+        it('should reduce the brackets', () => {
+            expect(doubleToSingleBrackets('((text)) [[array]]')).toEqual('(text) [array]');
+        });
+
+        it('should reduce the brackets in the Arabic text', () => {
+            expect(
+                doubleToSingleBrackets(
+                    'قال المؤلف رحمه الله تعالي: ((باب الإخلاص وإحضار النية، في جميع الأعمال والأقوال البارز والخفية))',
+                ),
+            ).toEqual(
+                'قال المؤلف رحمه الله تعالي: (باب الإخلاص وإحضار النية، في جميع الأعمال والأقوال البارز والخفية)',
+            );
+        });
+
+        it('should handle string with multiple double brackets', () => {
+            const str = '((النية)) محلها القلب و ((العمل)) محله الفعل';
+            const expected = '(النية) محلها القلب و (العمل) محله الفعل';
+            expect(doubleToSingleBrackets(str)).toEqual(expected);
+        });
+
+        it('should handle nested double brackets', () => {
+            const str = 'قال: ((هو ((العليم)) بكل شيء))';
+            const expected = 'قال: (هو (العليم) بكل شيء)';
+            expect(doubleToSingleBrackets(str)).toEqual(expected);
+        });
+
+        it('should handle string with no double brackets', () => {
+            const str = 'الحمد لله رب العالمين';
+            expect(doubleToSingleBrackets(str)).toEqual(str);
         });
     });
 
