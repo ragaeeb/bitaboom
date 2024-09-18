@@ -1,58 +1,58 @@
 import { describe, expect, it } from 'vitest';
 
-import { fixJson, isJsonLike, splitByQuotes } from './parsing';
+import { normalizeJsonSyntax, isJsonStructureValid, splitByQuotes } from './parsing';
 
 describe('parsing', () => {
-    describe('fixJson', () => {
+    describe('normalizeJsonSyntax', () => {
         it('should fix numeric keys and single-quoted values', () => {
-            const result = fixJson("{10: 'abc', 20: 'def'}");
+            const result = normalizeJsonSyntax("{10: 'abc', 20: 'def'}");
             expect(result).toBe('{"10":"abc","20":"def"}');
         });
 
         it('should handle mixed quoted and unquoted keys and values', () => {
-            const result = fixJson('{10: "abc", "key": \'def\'}');
+            const result = normalizeJsonSyntax('{10: "abc", "key": \'def\'}');
             expect(result).toBe('{"10":"abc","key":"def"}');
         });
 
         it('should handle an input that is already valid JSON', () => {
-            const result = fixJson('{"key": "value"}');
+            const result = normalizeJsonSyntax('{"key": "value"}');
             expect(result).toBe('{"key":"value"}');
         });
 
         it('should return valid JSON for single numeric keys and values', () => {
-            const result = fixJson("{5: 'test'}");
+            const result = normalizeJsonSyntax("{5: 'test'}");
             expect(result).toBe('{"5":"test"}');
         });
     });
 
-    describe('isJsonLike', () => {
+    describe('isJsonStructureValid', () => {
         it('should return true for valid JSON-like string with numeric keys and single-quoted values', () => {
-            const result = isJsonLike("{10: 'abc', 20: 'def'}");
+            const result = isJsonStructureValid("{10: 'abc', 20: 'def'}");
             expect(result).toBe(true);
         });
 
         it('should return true for mixed numeric and quoted keys with single/double quoted values', () => {
-            const result = isJsonLike("{10: 'abc', 'key': \"value\"}");
+            const result = isJsonStructureValid("{10: 'abc', 'key': \"value\"}");
             expect(result).toBe(true);
         });
 
         it('should return true for a single numeric key-value pair', () => {
-            const result = isJsonLike("{10: 'abc'}");
+            const result = isJsonStructureValid("{10: 'abc'}");
             expect(result).toBe(true);
         });
 
         it('should return false for non-JSON-like strings', () => {
-            const result = isJsonLike('random string');
+            const result = isJsonStructureValid('random string');
             expect(result).toBe(false);
         });
 
         it('should return false for malformed JSON-like structures', () => {
-            const result = isJsonLike('{key: value}');
+            const result = isJsonStructureValid('{key: value}');
             expect(result).toBe(false);
         });
 
         it('should return false for empty input', () => {
-            const result = isJsonLike('');
+            const result = isJsonStructureValid('');
             expect(result).toBe(false);
         });
     });

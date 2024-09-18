@@ -5,17 +5,17 @@ import {
     convertUrduSymbolsToArabic,
     englishToArabicComma,
     fixTrailingWow,
-    insertSpaceBetweenArabicTextAndNumber,
-    removeEnglishLettersAndSymbols,
+    addSpaceBetweenArabicTextAndNumbers,
+    stripEnglishCharactersAndSymbols,
     removeNonIndexSignatures,
     removeSingularCodes,
     removeSolitaryArabicLetters,
-    removeTaMarbutah,
-    removeTashkeel,
-    removeZeroWidthJoiners,
+    replaceTaMarbutahWithHa,
+    stripDiacritics,
+    stripZeroWidthCharacters,
     replaceAlifMaqsurah,
     replaceEnglishPunctuationWithArabic,
-    simplifyAlif,
+    normalizeAlifVariants,
 } from './arabic';
 
 describe('arabic', () => {
@@ -55,12 +55,6 @@ describe('arabic', () => {
         });
     });
 
-    describe('englishToArabicComma', () => {
-        it('should turn the english to the Arabic comma', () => {
-            expect(englishToArabicComma('This, is')).toEqual('This، is');
-        });
-    });
-
     describe('fixTrailingWow', () => {
         it('should fix trailing wow', () => {
             expect(fixTrailingWow('السلام عليكم و رحمة الله وبركاته الطرخون او ورق و')).toBe(
@@ -75,27 +69,27 @@ describe('arabic', () => {
         });
     });
 
-    describe('insertSpaceBetweenArabicTextAndNumber', () => {
+    describe('addSpaceBetweenArabicTextAndNumbers', () => {
         it('should insert a space between Arabic text and number', () => {
-            expect(insertSpaceBetweenArabicTextAndNumber('الآية37')).toBe('الآية 37');
+            expect(addSpaceBetweenArabicTextAndNumbers('الآية37')).toBe('الآية 37');
         });
 
         it('should insert a space between Arabic text and number in a sentence', () => {
-            expect(insertSpaceBetweenArabicTextAndNumber('قال29 وأجاب43')).toBe('قال 29 وأجاب 43');
+            expect(addSpaceBetweenArabicTextAndNumbers('قال29 وأجاب43')).toBe('قال 29 وأجاب 43');
         });
 
         it('should not insert space between Arabic text and non-number characters', () => {
-            expect(insertSpaceBetweenArabicTextAndNumber('الآية: ثلاثون وسبعة')).toBe('الآية: ثلاثون وسبعة');
+            expect(addSpaceBetweenArabicTextAndNumbers('الآية: ثلاثون وسبعة')).toBe('الآية: ثلاثون وسبعة');
         });
 
         it('should handle a string with no Arabic text and number', () => {
-            expect(insertSpaceBetweenArabicTextAndNumber('Hello World123')).toBe('Hello World123');
+            expect(addSpaceBetweenArabicTextAndNumbers('Hello World123')).toBe('Hello World123');
         });
     });
 
-    describe('removeEnglishLettersAndSymbols', () => {
+    describe('stripEnglishCharactersAndSymbols', () => {
         it('should remove ampersand', () => {
-            expect(removeEnglishLettersAndSymbols(`أحب & لنفسي`)).toEqual('أحب   لنفسي');
+            expect(stripEnglishCharactersAndSymbols(`أحب & لنفسي`)).toEqual('أحب   لنفسي');
         });
     });
 
@@ -194,33 +188,33 @@ describe('arabic', () => {
         });
     });
 
-    describe('removeTaMarbutah', () => {
+    describe('replaceTaMarbutahWithHa', () => {
         it('should remove the ta marbutah with a ha', () => {
-            expect(removeTaMarbutah('مدرسة')).toEqual('مدرسه');
+            expect(replaceTaMarbutahWithHa('مدرسة')).toEqual('مدرسه');
         });
     });
 
-    describe('removeTashkeel', () => {
+    describe('stripDiacritics', () => {
         it('should remove tatweel', () => {
-            expect(removeTashkeel('أبـــتِـــكَةُ')).toEqual('أبتكة');
+            expect(stripDiacritics('أبـــتِـــكَةُ')).toEqual('أبتكة');
         });
 
         it('should remove tashkeel', () => {
-            expect(removeTashkeel('مُحَمَّدٌ')).toEqual('محمد');
+            expect(stripDiacritics('مُحَمَّدٌ')).toEqual('محمد');
         });
     });
 
-    describe('removeZeroWidthJoiners', () => {
+    describe('stripZeroWidthCharacters', () => {
         it('should remove the empty space', () => {
             const text = 'يَخْلُوَ ‏. ‏ قَالَ غَرِيبٌ ‏. ‏';
             const expected = 'يَخْلُوَ  .   قَالَ غَرِيبٌ  .  ';
-            expect(removeZeroWidthJoiners(text)).toBe(expected);
+            expect(stripZeroWidthCharacters(text)).toBe(expected);
         });
     });
 
     describe('replaceEnglishPunctuationWithArabic', () => {
         it('should replace english question mark and semicolon with Arabic ones', () => {
-            expect(replaceEnglishPunctuationWithArabic('This; and that?')).toEqual('This؛and that؟');
+            expect(replaceEnglishPunctuationWithArabic('This; and, that?')).toEqual('This؛and، that؟');
         });
     });
 
@@ -230,9 +224,9 @@ describe('arabic', () => {
         });
     });
 
-    describe('simplifyAlif', () => {
+    describe('normalizeAlifVariants', () => {
         it('should simplify the alif with the basic one', () => {
-            expect(simplifyAlif('أإآ')).toEqual('ااا');
+            expect(normalizeAlifVariants('أإآ')).toEqual('ااا');
         });
     });
 });

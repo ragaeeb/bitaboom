@@ -1,12 +1,15 @@
-import { reduceSpaces } from './formatting';
+import { normalizeSpaces } from './formatting';
 
 /**
- * should replace all the al-s in strings like Al-Rahman bar-Rahman becomes al-Rahman to al-Rahman bar-Rahman becomes al-Rahman.
- * should replace all the ash in strings like ash-Shafiee but not when the 2nd word does not start with a S
- * @param {string} text - The input text to apply the rule to.
- * @returns {string} - The modified text after applying the rule.
+ * Replaces common Arabic prefixes (like 'Al-', 'Ar-', 'Ash-', etc.) with 'al-' in the text.
+ * Handles different variations of prefixes such as Ash- and Al- but not when the second word
+ * does not start with 'S'.
+ * Example: 'Ash-Shafiee' becomes 'al-Shafiee'.
+ *
+ * @param {string} text - The input text containing Arabic prefixes.
+ * @returns {string} - The modified text with standardized 'al-' prefixes.
  */
-export const convertArabicPrefixesToAl = (text: string): string => {
+export const normalizeArabicPrefixesToAl = (text: string): string => {
     return text
         .replace(/(\b|\W)(Al |Al-|Ar-|As-|Adh-|Ad-|Ats-|Ath |Ath-|Az |Az-|az-|adh-|as-|ar-)/g, '$1al-')
         .replace(/(\b|\W)(Ash-S|ash-S)/g, '$1al-S')
@@ -14,20 +17,25 @@ export const convertArabicPrefixesToAl = (text: string): string => {
 };
 
 /**
- * Corrects ʿ that is part of the target from having ʿ twice. Corrects words like ʿulamāʾʾ to ʿulamāʾ
- * @param {string} text - The input text to apply the rule to.
- * @returns {string} - The modified text after applying the rule.
+ * Removes double occurrences of Arabic apostrophes such as ʿʿ or ʾʾ in the text.
+ * Example: 'ʿulamāʾʾ' becomes 'ʿulamāʾ'.
+ *
+ * @param {string} text - The input text containing double apostrophes.
+ * @returns {string} - The modified text with condensed apostrophes.
  */
-export const condenseDoubleApostrophesToSingle = (text: string): string => {
+export const normalizeDoubleApostrophes = (text: string): string => {
     return text.replace(/ʿʿ/g, 'ʿ').replace(/ʾʾ/g, 'ʾ');
 };
 
 /**
- * Anything with "peace Muhammad s....m" replaces with the salutation. Then replaces texts that have comma between the salutation with just the salutation.
- * @param {string} text - The input text to apply the rule to.
- * @returns {string} - The modified text after applying the rule.
+ * Replaces common salutations such as "sallahu alayhi wasallam" with "ﷺ" in the text.
+ * It also handles variations of the salutation phrase, including 'peace and blessings be upon him'.
+ * Example: 'Then Muḥammad (sallahu alayhi wasallam)' becomes 'Then Muḥammad ﷺ'.
+ *
+ * @param {string} text - The input text containing salutations.
+ * @returns {string} - The modified text with salutations replaced.
  */
-export const fixSalutations = (text: string): string => {
+export const replaceSalutationsWithSymbol = (text: string): string => {
     return text
         .replace(
             /\(peace be upon him\)|(Messenger of (Allah|Allāh)|Messenger|Prophet|Mu[hḥ]ammad) *\((s[^)]*m|peace[^)]*him|May[^)]*him|may[^)]*him)\)*/gi,
@@ -36,6 +44,13 @@ export const fixSalutations = (text: string): string => {
         .replace(/,\s*ﷺ\s*,/g, ' ﷺ');
 };
 
+/**
+ * Normalizes the text by removing diacritics, apostrophes, and dashes.
+ * Example: 'Al-Jadwal' becomes 'AlJadwal'.
+ *
+ * @param {string} input - The input text to normalize.
+ * @returns {string} - The normalized text.
+ */
 export const normalize = (input: string) => {
     return input
         .normalize('NFKD')
@@ -44,22 +59,45 @@ export const normalize = (input: string) => {
 };
 
 /**
- * Turns all apostrophe variations to the actual apostrophe character to simplify word substitutions.
- * @param {string} text - The input text to apply the rule to.
- * @returns {string} - The modified text after applying the rule.
+ * Replaces various apostrophe characters (‛, ’, ‘) with the standard apostrophe (').
+ * Example: '‛ulama’ al-su‘' becomes ''ulama' al-su''.
+ *
+ * @param {string} text - The input text containing different apostrophe characters.
+ * @returns {string} - The modified text with normalized apostrophes.
  */
 export const normalizeApostrophes = (text: string): string => {
     return text.replace(/‛|’|‘/g, "'");
 };
 
-export const stripPrefixes = (text: string): string => {
-    return reduceSpaces(text.replace(/(\bal-|\bli-|\bbi-|\bfī|\bwa[-\s]+|\bl-|\bliʿl|\Bʿalá|\Bʿan|\bb\.)/gi, ''));
+/**
+ * Strips common Arabic prefixes like 'al-', 'bi-', 'fī', 'wa-', etc. from the beginning of words.
+ * Example: 'al-Bukhari' becomes 'Bukhari'.
+ *
+ * @param {string} text - The input text containing Arabic prefixes.
+ * @returns {string} - The modified text with prefixes stripped.
+ */
+export const removeArabicPrefixes = (text: string): string => {
+    return normalizeSpaces(text.replace(/(\bal-|\bli-|\bbi-|\bfī|\bwa[-\s]+|\bl-|\bliʿl|\Bʿalá|\Bʿan|\bb\.)/gi, ''));
 };
 
-export const simplifyEnglish = (text: string): string => normalize(stripPrefixes(text));
+/**
+ * Simplifies English transliterations by removing diacritics, apostrophes, and common prefixes.
+ * Example: 'Al-Jadwal' becomes 'Jadwal', and 'āḍġḥīṣṭū' becomes 'adghistu'.
+ *
+ * @param {string} text - The input text to simplify.
+ * @returns {string} - The simplified text.
+ */
+export const normalizeTransliteratedEnglish = (text: string): string => normalize(removeArabicPrefixes(text));
 
-export const getInitials = (fullName: string) => {
-    const initials = simplifyEnglish(fullName)
+/**
+ * Extracts the initials from the input string, typically used for names or titles.
+ * Example: 'Nayl al-Awtar' becomes 'NA'.
+ *
+ * @param {string} text - The input text to extract initials from.
+ * @returns {string} - The extracted initials.
+ */
+export const extractInitials = (fullName: string) => {
+    const initials = normalizeTransliteratedEnglish(fullName)
         .trim()
         .split(/[ -]/)
         .slice(0, 2)

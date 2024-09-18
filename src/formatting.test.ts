@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-    addLineBreaksAfterPunctuation,
     addSpaceBeforeAndAfterPunctuation,
     applySmartQuotes,
     cleanJunkFromText,
@@ -12,74 +11,75 @@ import {
     condenseColons,
     condenseDashes,
     condenseEllipsis,
-    condenseMultilinesToDouble,
-    condenseMultilinesToSingle,
     condensePeriods,
     condenseUnderscores,
     doubleToSingleBrackets,
     formatStringBySentence,
+    insertLineBreaksAfterPunctuation,
     isOnlyPunctuation,
-    reduceSpaceBetweenReference,
-    reduceSpaces,
+    normalizeSlashInReferences,
+    normalizeSpaces,
+    reduceMultilineBreaksToDouble,
+    reduceMultilineBreaksToSingle,
     removeSpaceInsideBrackets,
-    removeSpaceInsideQuotedText,
-    removeStyling,
+    stripStyling,
+    trimSpaceInsideQuotes,
 } from './formatting';
 
 describe('formatting', () => {
-    describe('addLineBreaksAfterPunctuation', () => {
+    describe('insertLineBreaksAfterPunctuation', () => {
         it('should add a new line after each period', () => {
             const input = 'الحمد لله رب العالمين. صلى الله وسلم على نبينا محمد.';
             const expectedOutput = 'الحمد لله رب العالمين.\nصلى الله وسلم على نبينا محمد.';
-            expect(addLineBreaksAfterPunctuation(input)).toBe(expectedOutput);
+            expect(insertLineBreaksAfterPunctuation(input)).toBe(expectedOutput);
         });
 
         it('should add a new line after each exclamation mark', () => {
             const input = 'سبحان الله! الحمد لله!';
             const expectedOutput = 'سبحان الله!\nالحمد لله!';
-            expect(addLineBreaksAfterPunctuation(input)).toBe(expectedOutput);
+            expect(insertLineBreaksAfterPunctuation(input)).toBe(expectedOutput);
         });
 
         it('should add a new line after each question mark', () => {
             const input = 'صلى الله وسلم على نبينا محمد؟ اجمعين.';
             const expectedOutput = 'صلى الله وسلم على نبينا محمد؟\nاجمعين.';
-            expect(addLineBreaksAfterPunctuation(input)).toBe(expectedOutput);
+            expect(insertLineBreaksAfterPunctuation(input)).toBe(expectedOutput);
         });
 
         it('should add a new line after each Arabic question mark', () => {
             const input = 'كيف حالك؟ انا بخير.';
             const expectedOutput = 'كيف حالك؟\nانا بخير.';
-            expect(addLineBreaksAfterPunctuation(input)).toBe(expectedOutput);
+            expect(insertLineBreaksAfterPunctuation(input)).toBe(expectedOutput);
         });
 
         it('should handle multiple punctuation marks in a single string', () => {
             const input = 'الحمد لله رب العالمين! سبحان الله. الله أكبر؟';
             const expectedOutput = 'الحمد لله رب العالمين!\nسبحان الله.\nالله أكبر؟';
-            expect(addLineBreaksAfterPunctuation(input)).toBe(expectedOutput);
+            expect(insertLineBreaksAfterPunctuation(input)).toBe(expectedOutput);
         });
 
         it('should not add extra spaces after punctuation marks', () => {
             const input = ['الحمد لله رب العالمين.', 'سبحان الله!'];
             const expectedOutput = 'الحمد لله رب العالمين.\nسبحان الله!';
-            expect(addLineBreaksAfterPunctuation(input.join(' '))).toBe(expectedOutput);
+            expect(insertLineBreaksAfterPunctuation(input.join(' '))).toBe(expectedOutput);
         });
 
         it('should return the same string if there are no punctuation marks', () => {
             const input = 'الحمد لله رب العالمين';
             const expectedOutput = 'الحمد لله رب العالمين';
-            expect(addLineBreaksAfterPunctuation(input)).toBe(expectedOutput);
+            expect(insertLineBreaksAfterPunctuation(input)).toBe(expectedOutput);
         });
 
         it('should handle empty string input', () => {
             const input = '';
             const expectedOutput = '';
-            expect(addLineBreaksAfterPunctuation(input)).toBe(expectedOutput);
+            expect(insertLineBreaksAfterPunctuation(input)).toBe(expectedOutput);
         });
 
         it('should handle strings with only punctuation marks correctly', () => {
             const input = '!.؟';
             const expectedOutput = '!\n.\n؟';
-            expect(addLineBreaksAfterPunctuation(input)).toBe(expectedOutput);
+            expect(insertLineBreaksAfterPunctuation(input)).toBe(expectedOutput);
         });
     });
 
@@ -295,33 +295,33 @@ describe('formatting', () => {
         });
     });
 
-    describe('condenseMultilinesToDouble', () => {
+    describe('reduceMultilineBreaksToDouble', () => {
         it('should reduce 3 or more line breaks to exactly 2', () => {
             const input = 'This is line 1\n\n\n\nThis is line 2';
             const expected = 'This is line 1\n\nThis is line 2';
-            expect(condenseMultilinesToDouble(input)).toBe(expected);
+            expect(reduceMultilineBreaksToDouble(input)).toBe(expected);
         });
 
         it('should not change 2 consecutive line breaks', () => {
             const input = 'This is line 1\n\nThis is line 2';
-            expect(condenseMultilinesToDouble(input)).toBe(input);
+            expect(reduceMultilineBreaksToDouble(input)).toBe(input);
         });
     });
 
-    describe('condenseMultilinesToSingle', () => {
+    describe('reduceMultilineBreaksToSingle', () => {
         it('should reduce 2 or more line breaks to exactly 1', () => {
             const input = 'This is line 1\n\nThis is line 2';
             const expected = 'This is line 1\nThis is line 2';
-            expect(condenseMultilinesToSingle(input)).toBe(expected);
+            expect(reduceMultilineBreaksToSingle(input)).toBe(expected);
         });
 
         it('should not change single line breaks', () => {
             const input = 'This is line 1\nThis is line 2';
-            expect(condenseMultilinesToSingle(input)).toEqual(input);
+            expect(reduceMultilineBreaksToSingle(input)).toEqual(input);
         });
 
         it('should remove the multiple line breaks', () => {
-            expect(condenseMultilinesToSingle('This\n\nis\n\n\nsome\nlines')).toEqual('This\nis\nsome\nlines');
+            expect(reduceMultilineBreaksToSingle('This\n\nis\n\n\nsome\nlines')).toEqual('This\nis\nsome\nlines');
         });
     });
 
@@ -457,43 +457,45 @@ describe('formatting', () => {
         });
     });
 
-    describe('reduceSpaceBetweenReference', () => {
+    describe('normalizeSlashInReferences', () => {
         it('should remove spaces around slashes in number references', () => {
             const input = '127 / 11';
             const expected = '127/11';
-            expect(reduceSpaceBetweenReference(input)).toEqual(expected);
+            expect(normalizeSlashInReferences(input)).toEqual(expected);
         });
 
         it('should handle cases without spaces around the slash', () => {
             const input = '127/11';
             const expected = '127/11';
-            expect(reduceSpaceBetweenReference(input)).toEqual(expected);
+            expect(normalizeSlashInReferences(input)).toEqual(expected);
         });
 
         it('should handle cases with multiple spaces around the slash', () => {
             const input = '127   /   11';
-            expect(reduceSpaceBetweenReference(input)).toEqual(input);
+            expect(normalizeSlashInReferences(input)).toEqual(input);
         });
 
         it('should not change text without number references', () => {
             const input = 'This is some text';
-            expect(reduceSpaceBetweenReference(input)).toEqual(input);
+            expect(normalizeSlashInReferences(input)).toEqual(input);
         });
 
         it('clean spaces between reference', () => {
-            expect(reduceSpaceBetweenReference('this is 127 / 11 with 127 /2 and 122 /3 and 22/1')).toEqual(
+            expect(normalizeSlashInReferences('this is 127 / 11 with 127 /2 and 122 /3 and 22/1')).toEqual(
                 'this is 127/11 with 127/2 and 122/3 and 22/1',
             );
         });
     });
 
-    describe('reduceSpaces', () => {
+    describe('normalizeSpaces', () => {
         it('removes the spaces', () => {
-            expect(reduceSpaces('This has    many spaces\n\nNext line')).toEqual('This has many spaces\n\nNext line');
+            expect(normalizeSpaces('This has    many spaces\n\nNext line')).toEqual(
+                'This has many spaces\n\nNext line',
+            );
         });
 
         it('no-op', () => {
-            expect(reduceSpaces('this is')).toEqual('this is');
+            expect(normalizeSpaces('this is')).toEqual('this is');
         });
     });
 
@@ -505,17 +507,17 @@ describe('formatting', () => {
         });
     });
 
-    describe('removeSpaceInsideQuotedText', () => {
+    describe('trimSpaceInsideQuotes', () => {
         it('should trim the space inside the quotes', () => {
-            expect(removeSpaceInsideQuotedText('“ Fasting is during the winter. ”')).toEqual(
+            expect(trimSpaceInsideQuotes('“ Fasting is during the winter. ”')).toEqual(
                 '“Fasting is during the winter.”',
             );
         });
     });
 
-    describe('removeStyling', () => {
+    describe('stripStyling', () => {
         it('should remove styling', () => {
-            expect(removeStyling('𝗢𝗳 𝗮𝗹𝗹 𝘀𝘁𝗶𝗽𝘂𝗹𝗮𝘁𝗶𝗼𝗻𝘀 𝘢𝗻𝗱 𝘪𝘵𝘢𝘭𝘪𝘤𝘪𝘻𝘦𝘥 𝘁𝗲𝘅𝘁')).toEqual(
+            expect(stripStyling('𝗢𝗳 𝗮𝗹𝗹 𝘀𝘁𝗶𝗽𝘂𝗹𝗮𝘁𝗶𝗼𝗻𝘀 𝘢𝗻𝗱 𝘪𝘵𝘢𝘭𝘪𝘤𝘪𝘻𝘦𝘥 𝘁𝗲𝘅𝘁')).toEqual(
                 'Of all stipulations and italicized text',
             );
         });

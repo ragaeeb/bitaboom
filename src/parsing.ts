@@ -7,10 +7,10 @@
  * @returns {string} - A valid JSON string.
  *
  * @example
- * const result = fixJson("{10: 'abc', 20: 'def'}");
+ * const result = normalizeJsonSyntax("{10: 'abc', 20: 'def'}");
  * console.log(result); // '{"10": "abc", "20": "def"}'
  */
-export const fixJson = (str: string): string => {
+export const normalizeJsonSyntax = (str: string): string => {
     let input = str.replace(/(\b\d+\b)(?=:)/g, '"$1"');
     input = input.replace(/:\s*'([^']+)'/g, ': "$1"');
     input = input.replace(/:\s*"([^"]+)"/g, ': "$1"');
@@ -21,16 +21,16 @@ export const fixJson = (str: string): string => {
 /**
  * Checks if a given string resembles a JSON object with numeric or quoted keys and values
  * that are single or double quoted. This is useful for detecting malformed JSON-like
- * structures that can be fixed by the `fixJson` function.
+ * structures that can be fixed by the `normalizeJsonSyntax` function.
  *
  * @param {string} str - The input string to check.
  * @returns {boolean} - Returns true if the string is JSON-like, false otherwise.
  *
  * @example
- * const result = isJsonLike("{10: 'abc', 'key': 'value'}");
+ * const result = isJsonStructureValid("{10: 'abc', 'key': 'value'}");
  * console.log(result); // true
  */
-export const isJsonLike = (str: string): boolean => {
+export const isJsonStructureValid = (str: string): boolean => {
     // Checks for a pattern with numeric keys or quoted keys and values in quotes
     const jsonLikePattern =
         /^{(\s*(\d+|'[^']*'|"[^"]*")\s*:\s*('|")[^'"]*\3\s*,)*(?:\s*(\d+|'[^']*'|"[^"]*")\s*:\s*('|")[^'"]*\5\s*)}$/;
@@ -48,7 +48,6 @@ export const isJsonLike = (str: string): boolean => {
  * @returns {string[]} An array of strings, with quoted substrings kept intact.
  *
  * @example
- * // Example usage:
  * const result = splitByQuotes('"This is" "a part of the" "string and"');
  * console.log(result); // ["This is", "a part of the", "string and"]
  */

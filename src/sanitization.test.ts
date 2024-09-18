@@ -3,8 +3,8 @@ import { describe, expect, it } from 'vitest';
 import {
     cleanSymbolsAndPartReferences,
     cleanTrailingPageNumbers,
-    lineBreaksToSpaces,
-    removeAllDigits,
+    replaceLineBreaksWithSpaces,
+    stripAllDigits,
     removeDeathYear,
     removeNumbersAndDashes,
     removeSingleDigitReferences,
@@ -52,15 +52,15 @@ describe('sanitization', () => {
         });
     });
 
-    describe('lineBreaksToSpaces', () => {
+    describe('replaceLineBreaksWithSpaces', () => {
         it('should convert the new line to a space', () => {
-            expect(lineBreaksToSpaces('a\nb')).toBe('a b');
+            expect(replaceLineBreaksWithSpaces('a\nb')).toBe('a b');
         });
     });
 
-    describe('removeAllDigits', () => {
+    describe('stripAllDigits', () => {
         it('should remove all the numbers', () => {
-            expect(removeAllDigits('abcd245')).toBe('abcd');
+            expect(stripAllDigits('abcd245')).toBe('abcd');
         });
     });
 
