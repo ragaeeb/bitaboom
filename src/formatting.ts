@@ -39,7 +39,8 @@ export const addSpaceBeforeAndAfterPunctuation = (text: string): string => {
     return text
         .replace(/( ?)([.!?,،؟;؛])((?![ '”“\)"\]\n])|(?=\s{2,}))/g, '$1$2 ')
         .replace(/\s([.!?,،؟;؛])\s*([ '”“\)"\]\n])/g, '$1$2')
-        .replace(/([^\s\w\d'”“\)"\]]+)\s+([.!?,،؟;؛])|([.!?,،؟;؛])\s+$/g, '$1$2$3');
+        .replace(/([^\s\w\d'”“\)"\]]+)\s+([.!?,،؟;؛])|([.!?,،؟;؛])\s+$/g, '$1$2$3')
+        .replace(/(?<=\D)( ?: ?)(?!(\d+:)|(:\d+))|(?<=\d) ?: ?(?=\D)|(?<=\D) ?: ?(?=\d)/g, ': ');
 };
 
 /**
@@ -115,13 +116,24 @@ export const condenseColons = (text: string): string => {
 };
 
 /**
- * replace occurrences of a period followed by one or more spaces and
-another period (". . . . . . . .") with a single period.
+ * condense two or more dashes/hyphens into a single hyphen.
  * @param {string} text - The input text to apply the rule to.
  * @returns {string} - The modified text after applying the rule.
  */
-export const condensePeriods = (text: string): string => {
-    return text.replace(/\. +\./g, '.');
+export const condenseDashes = (text: string): string => {
+    return text.replace(/-{2,}/g, '-');
+};
+
+/**
+ * replaces sequences of three or more dots with the ellipsis character (…).
+the sequence of ten dots ("..........") will be replaced by a single ellipsis character (…).
+The g flag ensures global replacement, and the {2,} quantifier will match two or more dots greedily, meaning it will try to match as many dots as possible.
+Therefore, all ten dots would be replaced by just one ellipsis character.
+ * @param {string} text - The input text to apply the rule to.
+ * @returns {string} - The modified text after applying the rule.
+ */
+export const condenseEllipsis = (text: string): string => {
+    return text.replace(/\.{2,}/g, '…');
 };
 
 /**
@@ -143,16 +155,21 @@ export const condenseMultilinesToSingle = (text: string): string => {
 };
 
 /**
- * replaces sequences of three or more dots with the ellipsis character (…).
-
-the sequence of ten dots ("..........") will be replaced by a single ellipsis character (…).
-The g flag ensures global replacement, and the {2,} quantifier will match two or more dots greedily, meaning it will try to match as many dots as possible.
-Therefore, all ten dots would be replaced by just one ellipsis character.
+ * replace occurrences of a period followed by one or more spaces and
+another period (". . . . . . . .") with a single period.
  * @param {string} text - The input text to apply the rule to.
  * @returns {string} - The modified text after applying the rule.
  */
-export const condenseEllipsis = (text: string): string => {
-    return text.replace(/\.{2,}/g, '…');
+export const condensePeriods = (text: string): string => {
+    return text.replace(/\. +\./g, '.');
+};
+
+/**
+ * @param {string} text - The input text to apply the rule to.
+ * @returns {string} - The modified text after applying the rule.
+ */
+export const condenseUnderscores = (text: string): string => {
+    return text.replace(/ـ{2,}/g, 'ـ').replace(/_+/g, '_');
 };
 
 /**
@@ -291,6 +308,15 @@ export const removeBoldStyling = (text: string): string => {
 
     // Remove combining marks (diacritics) and stylistic characters from the string
     return normalizedString.replace(/[\u0300-\u036f]/g, '').trim();
+};
+
+/**
+ * Removes unnecessary spaces between the edges of brackets. For example turns ( a b c d ) to (a b c d) and [ e f ] to [ef].
+ * @param {string} text - The input text to apply the rule to.
+ * @returns {string} - The modified text after applying the rule.
+ */
+export const removeSpaceInsideBrackets = (text: string): string => {
+    return text.replace(/([\[\(])\s*(.*?)\s*([\]\)])/g, '$1$2$3');
 };
 
 /**

@@ -6,6 +6,9 @@ import {
     lineBreaksToSpaces,
     removeAllDigits,
     removeDeathYear,
+    removeNumbersAndDashes,
+    removeSingleDigitReferences,
+    removeUrls,
 } from './sanitization';
 
 describe('sanitization', () => {
@@ -73,6 +76,26 @@ describe('sanitization', () => {
             );
             expect(removeDeathYear('Sufyān ibn ‘Uyaynah [died 15H] said:')).toEqual(
                 'Sufyān ibn ‘Uyaynah [died 15H] said:',
+            );
+        });
+    });
+
+    describe('removeNumbersAndDashes', () => {
+        it('should remove all numbers and dashes', () => {
+            expect(removeNumbersAndDashes('ABCD 123-Xyz')).toEqual('ABCD Xyz');
+        });
+    });
+
+    describe('removeSingleDigitReferences', () => {
+        it('should all single digit references', () => {
+            expect(removeSingleDigitReferences('Ref (1), Ref «2», Ref [3]')).toEqual('Ref , Ref , Ref ');
+        });
+    });
+
+    describe('removeUrls', () => {
+        it('should remove the url', () => {
+            expect(removeUrls('It should remove both https://abc.com and http://google.com from this')).toEqual(
+                'It should remove both  and  from this',
             );
         });
     });

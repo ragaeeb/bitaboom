@@ -1,3 +1,28 @@
+/**
+ * Gets rid of the ـ character at the end of Arabic strings
+If the text is "some textـ", it will be replaced to "some text".
+
+Input:  "ـThis is a textـ"
+Output: "This is a text"
+
+Input:  "ـAnother example with 1422هـ"
+Output: "Another example with 1422هـ"
+
+Input:  "ـA multiline stringـ\nـwith several linesـ\n1423هـ"
+Output: "A multiline string\nwith several lines\n1423هـ"
+
+Input:  "This is a normal line\nـAnd this one starts with the characterـ\nAnd 1424هـ remains unchanged"
+Output: "This is a normal line\nAnd this one starts with the character\nAnd 1424هـ remains unchanged"
+
+Input:  "ـJustـ anotherـ exampleـ\n1425هـ is a Hijri yearـ"
+Output: "Just another example\n1425هـ is a Hijri year"
+ * @param {string} text - The input text to apply the rule to.
+ * @returns {string} - The modified text after applying the rule.
+ */
+export const cleanExtremeArabicUnderscores = (text: string): string => {
+    return text.replace(/(?<!\d ?ه|اه)ـ(?=\r?$)|^ـ(?!اهـ)/gm, '');
+};
+
 export const convertUrduSymbolsToArabic = (text: string): string => {
     return text.replace(/ھ/g, 'ه').replace(/ی/g, 'ي');
 };
@@ -84,6 +109,18 @@ export const removeSolitaryArabicLetters = (text: string): string => {
 };
 
 /**
+ * This replaces the 'tah marbutah' (ة) with the regular 'ha' (ه).
+Example:
+Input: مدرسة
+Output: مدرسه
+ * @param {string} text - The input text to apply the rule to.
+ * @returns {string} - The modified text after applying the rule.
+ */
+export const removeTaMarbutah = (text: string): string => {
+    return text.replace(/[ة]/g, 'ه');
+};
+
+/**
  * This replaces various Arabic diacritics (tashkeel) and the tatweel (elongation character).
 Example:
 Input: مُحَمَّدٌ
@@ -123,4 +160,38 @@ While removing zero-width characters can help in streamlining text processing an
  */
 export const removeZeroWidthJoiners = (text: string): string => {
     return text.replace(/[\u200B-\u200F\u202A-\u202E\u2060-\u2064\uFEFF]/g, ' ');
+};
+
+/**
+ * This replaces the Arabic letter 'alif maqsurah' (ى) with the regular 'ya' (ي).
+Example:
+Input: رؤيى
+Output: رؤيي
+ * @param {string} text - The input text to apply the rule to.
+ * @returns {string} - The modified text after applying the rule.
+ */
+export const replaceAlifMaqsurah = (text: string): string => {
+    return text.replace(/[ىي]/g, 'ي');
+};
+
+/**
+ * Replaces English question mark to Arabic one or an Arabic question mark with a period to just the question mark.
+ * Also replaces English semicolon with Arabic one.
+ * @param {string} text - The input text to apply the rule to.
+ * @returns {string} - The modified text after applying the rule.
+ */
+export const replaceEnglishPunctuationWithArabic = (text: string): string => {
+    return text.replace(/\?|؟\./g, '؟').replace(/(;|؛)\s*(\1\s*)*/g, '؛');
+};
+
+/**
+ * This replaces all forms of "alif" that are not the simple 'ا' with the simple 'ا'.
+Example:
+Input: أنا إلى الآفاق
+Output: انا الى الافاق
+ * @param {string} text - The input text to apply the rule to.
+ * @returns {string} - The modified text after applying the rule.
+ */
+export const simplifyAlif = (text: string): string => {
+    return text.replace(/[أإآ]/g, 'ا');
 };

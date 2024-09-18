@@ -74,3 +74,33 @@ export const removeAllDigits = (text: string): string => {
 export const removeDeathYear = (text: string): string => {
     return text.replace(/\[(d)\.\s*\d{1,4}[hH]\]\s*|\((d)\.\s*\d{1,4}[hH]\)\s*/g, '');
 };
+
+/**
+ * Removes digits and dashes from the text.
+ * @param {string} text - The input text to apply the rule to.
+ * @returns {string} - The modified text after applying the rule.
+ */
+export const removeNumbersAndDashes = (text: string): string => {
+    return text.replace(/[\d-]/g, '');
+};
+
+/**
+ * Removes single digit references like (1), «2», [3].
+ * @param {string} text - The input text to apply the rule to.
+ * @returns {string} - The modified text after applying the rule.
+ */
+export const removeSingleDigitReferences = (text: string): string => {
+    return text.replace(/\(\d{1}\)|\[\d{1}\]|«\d»/g, '');
+};
+
+/**
+ * removeUrls
+ * @param {string} text - The input text to apply the rule to.
+ * @returns {string} - The modified text after applying the rule.
+ */
+export const removeUrls = (text: string): string => {
+    return text.replace(
+        /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g,
+        '',
+    );
+};

@@ -10,15 +10,18 @@ import {
     cleanSpacesBeforePeriod,
     condenseAsterisks,
     condenseColons,
+    condenseDashes,
     condenseEllipsis,
     condenseMultilinesToDouble,
     condenseMultilinesToSingle,
     condensePeriods,
+    condenseUnderscores,
     doubleToSingleBrackets,
     formatStringBySentence,
     isOnlyPunctuation,
     reduceSpaceBetweenReference,
     reduceSpaces,
+    removeSpaceInsideBrackets,
     removeSpaceInsideQuotedText,
     removeStyling,
 } from './formatting';
@@ -105,6 +108,29 @@ describe('formatting', () => {
         it('should not add spaces for brackets and quoted text', () => {
             expect(addSpaceBeforeAndAfterPunctuation('“This is some text!” [Something!] (Something!)')).toEqual(
                 '“This is some text!” [Something!] (Something!)',
+            );
+        });
+
+        it('should add a space after colon', () => {
+            expect(addSpaceBeforeAndAfterPunctuation('a:ksjdf')).toBe('a: ksjdf');
+            expect(addSpaceBeforeAndAfterPunctuation('2:asdf')).toBe('2: asdf');
+            expect(addSpaceBeforeAndAfterPunctuation('a:2 of them')).toBe('a: 2 of them');
+            expect(addSpaceBeforeAndAfterPunctuation('(al-Nūr:27)')).toBe('(al-Nūr: 27)');
+        });
+
+        it('should not add space for ayah', () => {
+            expect(addSpaceBeforeAndAfterPunctuation('61:23')).toBe('61:23');
+            expect(addSpaceBeforeAndAfterPunctuation('1:2')).toBe('1:2');
+        });
+
+        it('should add space for Arabic ayah signature', () => {
+            expect(addSpaceBeforeAndAfterPunctuation('قال : ومشايخنا')).toBe('قال: ومشايخنا');
+            expect(addSpaceBeforeAndAfterPunctuation('[النور: 36]')).toBe('[النور: 36]');
+        });
+
+        it('should remove the space before a comma', () => {
+            expect(addSpaceBeforeAndAfterPunctuation('this , then that" to "this, then that')).toEqual(
+                'this, then that" to "this, then that',
             );
         });
     });
@@ -257,6 +283,12 @@ describe('formatting', () => {
         });
     });
 
+    describe('condenseDashes', () => {
+        it('should remove the unnecessary punctuation around the colon', () => {
+            expect(condenseDashes('This is some ---- text')).toEqual('This is some - text');
+        });
+    });
+
     describe('condenseEllipsis', () => {
         it('should condense the periods into an ellipsis', () => {
             expect(condenseEllipsis('This is some text...')).toEqual('This is some text…');
@@ -296,6 +328,12 @@ describe('formatting', () => {
     describe('condensePeriods', () => {
         it('should remove the unnecessary punctuation around the colon', () => {
             expect(condensePeriods('This . . . . . . . . and')).toEqual('This . . . . and');
+        });
+    });
+
+    describe('condenseUnderscores', () => {
+        it('should condense the underscores', () => {
+            expect(condenseUnderscores('This is ــ some text __')).toEqual('This is ـ some text _');
         });
     });
 
@@ -456,6 +494,14 @@ describe('formatting', () => {
 
         it('no-op', () => {
             expect(reduceSpaces('this is')).toEqual('this is');
+        });
+    });
+
+    describe('removeSpaceInsideBrackets', () => {
+        it('should remove the space in the brackets', () => {
+            expect(removeSpaceInsideBrackets('( Fasting is during ) [ the ] winter.')).toEqual(
+                '(Fasting is during) [the] winter.',
+            );
         });
     });
 

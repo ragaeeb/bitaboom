@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+    cleanExtremeArabicUnderscores,
     convertUrduSymbolsToArabic,
     englishToArabicComma,
     fixTrailingWow,
@@ -9,11 +10,43 @@ import {
     removeNonIndexSignatures,
     removeSingularCodes,
     removeSolitaryArabicLetters,
+    removeTaMarbutah,
     removeTashkeel,
     removeZeroWidthJoiners,
+    replaceAlifMaqsurah,
+    replaceEnglishPunctuationWithArabic,
+    simplifyAlif,
 } from './arabic';
 
 describe('arabic', () => {
+    describe('cleanExtremeArabicUnderscores', () => {
+        it('should not affect hijri dates', () => {
+            expect(cleanExtremeArabicUnderscores('اهـ')).toBe('اهـ');
+        });
+
+        it('should get rid of the ending character', () => {
+            expect(cleanExtremeArabicUnderscores('ـThis is a textـ')).toBe('This is a text');
+        });
+
+        it('should not affect the Hijri year', () => {
+            expect(cleanExtremeArabicUnderscores('ـAnother example with 1422هـ')).toBe('Another example with 1422هـ');
+        });
+
+        it('should process the multiline text', () => {
+            expect(cleanExtremeArabicUnderscores('ـA multiline stringـ\nـwith several linesـ\n1423هـ')).toBe(
+                'A multiline string\nwith several lines\n1423هـ',
+            );
+        });
+
+        it('should not affect years that are in the middle of the sentence', () => {
+            expect(
+                cleanExtremeArabicUnderscores(
+                    'This is a normal line\nـAnd this one starts with the characterـ\nAnd 1424هـ remains unchanged',
+                ),
+            ).toBe('This is a normal line\nAnd this one starts with the character\nAnd 1424هـ remains unchanged');
+        });
+    });
+
     describe('convertUrduSymbolsToArabic', () => {
         it('should convert the text', () => {
             expect(convertUrduSymbolsToArabic('ھذا كذب موضوع باتفاق أھل العلم بالحدیث، فیجب تكذیبھ ورده')).toEqual(
@@ -161,6 +194,12 @@ describe('arabic', () => {
         });
     });
 
+    describe('removeTaMarbutah', () => {
+        it('should remove the ta marbutah with a ha', () => {
+            expect(removeTaMarbutah('مدرسة')).toEqual('مدرسه');
+        });
+    });
+
     describe('removeTashkeel', () => {
         it('should remove tatweel', () => {
             expect(removeTashkeel('أبـــتِـــكَةُ')).toEqual('أبتكة');
@@ -176,6 +215,24 @@ describe('arabic', () => {
             const text = 'يَخْلُوَ ‏. ‏ قَالَ غَرِيبٌ ‏. ‏';
             const expected = 'يَخْلُوَ  .   قَالَ غَرِيبٌ  .  ';
             expect(removeZeroWidthJoiners(text)).toBe(expected);
+        });
+    });
+
+    describe('replaceEnglishPunctuationWithArabic', () => {
+        it('should replace english question mark and semicolon with Arabic ones', () => {
+            expect(replaceEnglishPunctuationWithArabic('This; and that?')).toEqual('This؛and that؟');
+        });
+    });
+
+    describe('replaceAlifMaqsurah', () => {
+        it('should remove the Alif maqsurah with the ya', () => {
+            expect(replaceAlifMaqsurah('رؤيى')).toEqual('رؤيي');
+        });
+    });
+
+    describe('simplifyAlif', () => {
+        it('should simplify the alif with the basic one', () => {
+            expect(simplifyAlif('أإآ')).toEqual('ااا');
         });
     });
 });
