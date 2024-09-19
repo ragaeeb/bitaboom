@@ -1,21 +1,20 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+    addSpaceBetweenArabicTextAndNumbers,
     cleanExtremeArabicUnderscores,
     convertUrduSymbolsToArabic,
-    englishToArabicComma,
     fixTrailingWow,
-    addSpaceBetweenArabicTextAndNumbers,
-    stripEnglishCharactersAndSymbols,
+    normalizeAlifVariants,
     removeNonIndexSignatures,
     removeSingularCodes,
     removeSolitaryArabicLetters,
-    replaceTaMarbutahWithHa,
-    stripDiacritics,
-    stripZeroWidthCharacters,
     replaceAlifMaqsurah,
     replaceEnglishPunctuationWithArabic,
-    normalizeAlifVariants,
+    replaceTaMarbutahWithHa,
+    stripDiacritics,
+    stripEnglishCharactersAndSymbols,
+    stripZeroWidthCharacters,
 } from './arabic';
 
 describe('arabic', () => {

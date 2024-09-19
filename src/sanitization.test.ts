@@ -3,12 +3,12 @@ import { describe, expect, it } from 'vitest';
 import {
     cleanSymbolsAndPartReferences,
     cleanTrailingPageNumbers,
-    replaceLineBreaksWithSpaces,
-    stripAllDigits,
     removeDeathYear,
     removeNumbersAndDashes,
     removeSingleDigitReferences,
     removeUrls,
+    replaceLineBreaksWithSpaces,
+    stripAllDigits,
 } from './sanitization';
 
 describe('sanitization', () => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { normalizeJsonSyntax, isJsonStructureValid, splitByQuotes } from './parsing';
+import { isJsonStructureValid, normalizeJsonSyntax, splitByQuotes } from './parsing';
 
 describe('parsing', () => {
     describe('normalizeJsonSyntax', () => {

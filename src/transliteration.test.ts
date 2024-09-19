@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-    normalizeDoubleApostrophes,
-    normalizeArabicPrefixesToAl,
-    replaceSalutationsWithSymbol,
     extractInitials,
     normalize,
     normalizeApostrophes,
+    normalizeArabicPrefixesToAl,
+    normalizeDoubleApostrophes,
     removeArabicPrefixes,
+    replaceSalutationsWithSymbol,
 } from './transliteration';
 
 describe('transliteration', () => {
