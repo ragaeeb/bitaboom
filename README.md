@@ -8,7 +8,7 @@ Bitaboom is a NodeJS string utility library written in TypeScript, designed to p
 
 ## Demo
 
-(https://ragaeeb.github.io/bitaboom/)[Demo]
+[Demo](https://ragaeeb.github.io/bitaboom/)
 
 ## Installation
 
