@@ -6,6 +6,10 @@
 
 Bitaboom is a NodeJS string utility library written in TypeScript, designed to provide a collection of helpful string manipulation functions. It supports the latest ESNext features and is tested using Vitest.
 
+## Demo
+
+(https://ragaeeb.github.io/bitaboom/)[Demo]
+
 ## Installation
 
 To install Bitaboom, use npm or yarn:
