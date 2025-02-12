@@ -9,6 +9,7 @@ import {
     removeNonIndexSignatures,
     removeSingularCodes,
     removeSolitaryArabicLetters,
+    removeTatwil,
     replaceAlifMaqsurah,
     replaceEnglishPunctuationWithArabic,
     replaceTaMarbutahWithHa,
@@ -21,6 +22,9 @@ describe('arabic', () => {
     describe('cleanExtremeArabicUnderscores', () => {
         it('should not affect hijri dates', () => {
             expect(cleanExtremeArabicUnderscores('اهـ')).toBe('اهـ');
+            expect(cleanExtremeArabicUnderscores(`علينا فنتبع الهوى" اهـ.    حرر في: 1435/3/29 هـ`)).toBe(
+                `علينا فنتبع الهوى" اهـ.    حرر في: 1435/3/29 هـ`,
+            );
         });
 
         it('should get rid of the ending character', () => {
@@ -200,6 +204,16 @@ describe('arabic', () => {
 
         it('should remove tashkeel', () => {
             expect(stripDiacritics('مُحَمَّدٌ')).toEqual('محمد');
+        });
+    });
+
+    describe('removeTatwil', () => {
+        it('should remove tatweel', () => {
+            expect(removeTatwil('أبـــتِـــكَةُ')).toEqual('أبتِكَةُ');
+        });
+
+        it('should not affect dates', () => {
+            expect(removeTatwil('1435/3/29 هـ')).toEqual('1435/3/29 هـ');
         });
     });
 

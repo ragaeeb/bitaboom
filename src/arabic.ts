@@ -83,6 +83,17 @@ export const removeSolitaryArabicLetters = (text: string): string => {
 };
 
 /**
+ * Removes tatweel characters while preserving dates references.
+ * Example: "1435/3/29 هـ" remains as "1435/3/29 هـ" but "أبـــتِـــكَةُ" becomes "أبتِكَةُ"
+ * @param text The text to format.
+ * @returns The modified text with the tatweel characters removed.
+ */
+export const removeTatwil = (text: string) => {
+    // Remove any tatweel (ـ) that is not immediately preceded by 'ه'
+    return text.replace(/(?<!ه)ـ/g, '');
+};
+
+/**
  * Replaces the 'tah marbutah' (ة) character with 'ha' (ه).
  * Example: 'مدرسة' will be changed to 'مدرسه'.
  * @param {string} text - The input text to apply the rule to.
