@@ -1,7 +1,7 @@
 {
     "name": "bitaboom",
     "description": "Use string utils library to format Arabic and English translations.",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "author": "Ragaeeb Haq",
     "license": "MIT",
     "private": false,
@@ -14,7 +14,7 @@
         "url": "git+https://github.com/ragaeeb/bitaboom.git"
     },
     "engines": {
-        "node": ">=20.0.0"
+        "node": ">=23.0.0"
     },
     "files": [
         "dist/main.js",
@@ -30,28 +30,27 @@
         "arabic"
     ],
     "devDependencies": {
-        "@eslint/js": "^9.10.0",
-        "@parcel/packager-ts": "^2.12.0",
-        "@parcel/transformer-typescript-types": "^2.12.0",
+        "@eslint/js": "^9.20.0",
+        "@parcel/packager-ts": "^2.13.3",
+        "@parcel/transformer-typescript-types": "^2.13.3",
         "@semantic-release/changelog": "^6.0.3",
         "@semantic-release/git": "^10.0.1",
         "@types/eslint__js": "^8.42.3",
-        "@types/node": "^22.5.5",
-        "@vitest/coverage-v8": "^2.1.1",
-        "eslint": "^9.10.0",
-        "eslint-config-prettier": "^9.1.0",
-        "eslint-plugin-import": "^2.30.0",
-        "eslint-plugin-perfectionist": "^3.6.0",
-        "eslint-plugin-prettier": "^5.2.1",
+        "@types/node": "^22.13.1",
+        "@vitest/coverage-v8": "^3.0.5",
+        "eslint": "^9.20.1",
+        "eslint-config-prettier": "^10.0.1",
+        "eslint-plugin-import": "^2.31.0",
+        "eslint-plugin-perfectionist": "^4.8.0",
+        "eslint-plugin-prettier": "^5.2.3",
         "eslint-plugin-vitest": "^0.5.4",
         "eslint-plugin-vitest-globals": "^1.5.0",
-        "parcel": "^2.12.0",
-        "prettier": "^3.3.3",
-        "semantic-release": "^24.1.1",
+        "parcel": "^2.13.3",
+        "prettier": "^3.5.0",
+        "semantic-release": "^24.2.2",
         "ts-node": "^10.9.2",
-        "typescript": "^5.6.2",
-        "typescript-eslint": "^8.6.0",
-        "vitest": "^2.1.1"
-    },
-    "packageManager": "pnpm@9.10.0+sha512.73a29afa36a0d092ece5271de5177ecbf8318d454ecd701343131b8ebc0c1a91c487da46ab77c8e596d6acf1461e3594ced4becedf8921b074fbd8653ed7051c"
+        "typescript": "^5.7.3",
+        "typescript-eslint": "^8.24.0",
+        "vitest": "^3.0.5"
+    }
 }

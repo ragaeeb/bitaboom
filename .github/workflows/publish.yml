@@ -19,7 +19,7 @@ jobs:
                   persist-credentials: true
             - uses: actions/setup-node@v4
               with:
-                  node-version: 21
+                  node-version: 23
             - name: Enable Corepack
               run: corepack enable
             - run: pnpm install --frozen-lockfile

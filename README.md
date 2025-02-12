@@ -1,6 +1,15 @@
 # Table of Contents
 
-[![wakatime](https://wakatime.com/badge/user/a0b906ce-b8e7-4463-8bce-383238df6d4b/project/4a00f7dd-3a49-4d59-a2ff-43c89e22d650.svg)](https://wakatime.com/badge/user/a0b906ce-b8e7-4463-8bce-383238df6d4b/project/4a00f7dd-3a49-4d59-a2ff-43c89e22d650) ![GitHub](https://img.shields.io/github/license/ragaeeb/bitaboom) ![npm](https://img.shields.io/npm/v/bitaboom) ![npm](https://img.shields.io/npm/dm/bitaboom) ![GitHub issues](https://img.shields.io/github/issues/ragaeeb/bitaboom) ![GitHub stars](https://img.shields.io/github/stars/ragaeeb/bitaboom?style=social) ![GitHub Release](https://img.shields.io/github/v/release/ragaeeb/bitaboom) [![codecov](https://codecov.io/gh/ragaeeb/bitaboom/graph/badge.svg?token=7Z3E38HXCD)](https://codecov.io/gh/ragaeeb/bitaboom) [![Size](https://deno.bundlejs.com/badge?q=bitaboom@1.0.0&badge=detailed)](https://bundlejs.com/?q=bitaboom%401.0.0) ![typescript](https://badgen.net/badge/icon/typescript?icon=typescript&label&color=blue)
+[![wakatime](https://wakatime.com/badge/user/a0b906ce-b8e7-4463-8bce-383238df6d4b/project/4a00f7dd-3a49-4d59-a2ff-43c89e22d650.svg)](https://wakatime.com/badge/user/a0b906ce-b8e7-4463-8bce-383238df6d4b/project/4a00f7dd-3a49-4d59-a2ff-43c89e22d650)
+![GitHub](https://img.shields.io/github/license/ragaeeb/bitaboom)
+![npm](https://img.shields.io/npm/v/bitaboom)
+![npm](https://img.shields.io/npm/dm/bitaboom)
+![GitHub issues](https://img.shields.io/github/issues/ragaeeb/bitaboom)
+![GitHub stars](https://img.shields.io/github/stars/ragaeeb/bitaboom?style=social)
+![GitHub Release](https://img.shields.io/github/v/release/ragaeeb/bitaboom)
+[![codecov](https://codecov.io/gh/ragaeeb/bitaboom/graph/badge.svg?token=7Z3E38HXCD)](https://codecov.io/gh/ragaeeb/bitaboom)
+[![Size](https://deno.bundlejs.com/badge?q=bitaboom@latest&badge=detailed)](https://bundlejs.com/?q=bitaboom%40latest)
+![typescript](https://badgen.net/badge/icon/typescript?icon=typescript&label&color=blue)
 
 # Bitaboom - A String Utilities Library
 
@@ -187,6 +196,19 @@ Corrects unnecessary trailing "و" in greetings or phrases.
 ```javascript
 fixTrailingWow('السلام عليكم و رحمة');
 // Output: 'السلام عليكم ورحمة'
+```
+
+---
+
+### `hasWordInSingleLine`
+
+Checks if a line has any word by itself.
+
+#### Example:
+
+```javascript
+hasWordInSingleLine('Abc efg\nhij\nklmn opq');
+// Output: true (since "hij" is by itself)
 ```
 
 ---
@@ -407,6 +429,19 @@ Removes solitary Arabic letters unless they are 'ha' used in Hijri years.
 ```javascript
 removeSolitaryArabicLetters('ب ا الكلمات ت');
 // Output: 'ا الكلمات'
+```
+
+---
+
+### `removeTatwil`
+
+Removes tatweel characters from Arabic text while preserving the Hijri years.
+
+#### Example:
+
+```javascript
+removeTatwil('أبـــتِـــكَةُ');
+// Output: 'أبتِكَةُ'
 ```
 
 ---

@@ -15,6 +15,7 @@ import {
     condenseUnderscores,
     doubleToSingleBrackets,
     formatStringBySentence,
+    hasWordInSingleLine,
     insertLineBreaksAfterPunctuation,
     isOnlyPunctuation,
     normalizeSlashInReferences,
@@ -80,6 +81,16 @@ describe('formatting', () => {
             const input = '!.؟';
             const expectedOutput = '!\n.\n؟';
             expect(insertLineBreaksAfterPunctuation(input)).toBe(expectedOutput);
+        });
+    });
+
+    describe('hasWordInSingleLine', () => {
+        it('should detect that the second line is by itself', () => {
+            expect(hasWordInSingleLine(['فأولئك هم', 'الفائزون', 'وإياك إياك'].join('\n'))).toBe(true);
+        });
+
+        it('should not find any words by itself', () => {
+            expect(hasWordInSingleLine(['فأولئك هم', 'وإياك إياك'].join('\n'))).toBe(false);
         });
     });
 
