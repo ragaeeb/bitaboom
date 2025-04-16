@@ -215,6 +215,10 @@ describe('arabic', () => {
         it('should not affect dates', () => {
             expect(removeTatwil('1435/3/29 هـ')).toEqual('1435/3/29 هـ');
         });
+
+        it('should not affect numbering', () => {
+            expect(removeTatwil('4ـ ومدح لكتاب')).toEqual('4ـ ومدح لكتاب');
+        });
     });
 
     describe('stripZeroWidthCharacters', () => {

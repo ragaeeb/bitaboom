@@ -89,8 +89,7 @@ export const removeSolitaryArabicLetters = (text: string): string => {
  * @returns The modified text with the tatweel characters removed.
  */
 export const removeTatwil = (text: string) => {
-    // Remove any tatweel (ـ) that is not immediately preceded by 'ه'
-    return text.replace(/(?<!ه)ـ/g, '');
+    return text.replace(/(?<![0-9ه])ـ/g, '');
 };
 
 /**
