@@ -55,3 +55,91 @@ export const splitByQuotes = (query: string): string[] => {
     const regex = /(?:[^\s"]+|"(.*?)")+/g;
     return (query.match(regex) || []).map((s: string) => (s.startsWith('"') ? s.slice(1, -1) : s));
 };
+
+/**
+ * Checks if all double quotes in a string are balanced (even count).
+ * A string has balanced quotes if every opening quote has a corresponding closing quote.
+ *
+ * @param str - The string to check for balanced quotes
+ * @returns True if quotes are balanced (even count), false otherwise
+ *
+ * @example
+ * ```typescript
+ * areQuotesBalanced('Hello "world"') // Returns: true
+ * areQuotesBalanced('Hello "world') // Returns: false
+ * areQuotesBalanced('No quotes') // Returns: true
+ * ```
+ */
+const areQuotesBalanced = (str: string): boolean => {
+    let quoteCount = 0;
+    for (const char of str) {
+        if (char === '"') {
+            quoteCount++;
+        }
+    }
+    return quoteCount % 2 === 0;
+};
+
+const brackets = { '(': ')', '[': ']', '{': '}' };
+const openBrackets = new Set(['(', '[', '{']);
+const closeBrackets = new Set([')', ']', '}']);
+
+/**
+ * Checks if all brackets in a string are properly balanced and matched.
+ * This function validates that every opening bracket has a corresponding closing bracket
+ * in the correct order and of the matching type.
+ *
+ * Supported bracket types: parentheses (), square brackets [], curly braces {}
+ *
+ * @param str - The string to check for balanced brackets
+ * @returns True if all brackets are properly balanced and matched, false otherwise
+ *
+ * @example
+ * ```typescript
+ * areBracketsBalanced('(hello [world])') // Returns: true
+ * areBracketsBalanced('(hello [world)') // Returns: false (mismatched)
+ * areBracketsBalanced('((hello))') // Returns: true
+ * areBracketsBalanced('(hello') // Returns: false (unclosed)
+ * ```
+ */
+
+const areBracketsBalanced = (str: string): boolean => {
+    const stack: string[] = [];
+
+    for (const char of str) {
+        if (openBrackets.has(char)) {
+            stack.push(char);
+        } else if (closeBrackets.has(char)) {
+            const lastOpen = stack.pop();
+            if (!lastOpen || brackets[lastOpen as keyof typeof brackets] !== char) {
+                return false;
+            }
+        }
+    }
+
+    return stack.length === 0;
+};
+
+/**
+ * Checks if both quotes and brackets are balanced in a string.
+ * This function combines quote balance checking and bracket balance checking
+ * to ensure the entire string has properly balanced punctuation.
+ *
+ * A string is considered balanced when:
+ * - All double quotes have matching pairs (even count)
+ * - All brackets (parentheses, square brackets, curly braces) are properly matched and nested
+ *
+ * @param str - The string to check for balanced quotes and brackets
+ * @returns True if both quotes and brackets are balanced, false otherwise
+ *
+ * @example
+ * ```typescript
+ * isBalanced('He said "Hello (world)!"') // Returns: true
+ * isBalanced('He said "Hello (world!"') // Returns: false (unbalanced quote)
+ * isBalanced('He said "Hello (world)"') // Returns: false (unbalanced quote)
+ * isBalanced('Hello (world) [test]') // Returns: true
+ * ```
+ */
+export const isBalanced = (str: string): boolean => {
+    return areQuotesBalanced(str) && areBracketsBalanced(str);
+};

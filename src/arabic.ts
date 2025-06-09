@@ -69,7 +69,7 @@ export const removeNonIndexSignatures = (text: string): string => {
  * @returns {string} - The modified text with singular codes removed.
  */
 export const removeSingularCodes = (text: string): string => {
-    return text.replace(/[\[\({][\u0621-\u064A\u0660-\u0669][\]\)}]/g, '');
+    return text.replace(/[[({][\u0621-\u064A\u0660-\u0669][\])}]/g, '');
 };
 
 /**
@@ -83,13 +83,16 @@ export const removeSolitaryArabicLetters = (text: string): string => {
 };
 
 /**
- * Removes tatweel characters while preserving dates references.
+ * Removes tatweel characters while preserving dates references and numbered list items.
  * Example: "1435/3/29 هـ" remains as "1435/3/29 هـ" but "أبـــتِـــكَةُ" becomes "أبتِكَةُ"
  * @param text The text to format.
  * @returns The modified text with the tatweel characters removed.
  */
 export const removeTatwil = (text: string) => {
-    return text.replace(/(?<![0-9ه])ـ/g, '');
+    // Don't remove tatweel if:
+    // 1. Immediately preceded by a number or ه (for dates like "1435هـ")
+    // 2. Preceded by a number with optional spaces (for list items like "3 ـ")
+    return text.replace(/(?<![0-9ه])(?<![0-9]\s*)ـ/g, '');
 };
 
 /**

@@ -176,6 +176,22 @@ convertUrduSymbolsToArabic('ھذا');
 
 ---
 
+### `ensureSpaceBeforeBrackets`
+
+Ensures there is exactly one space before parentheses that follow non-whitespace characters. Normalizes multiple spaces to a single space.
+
+#### Example:
+
+```javascript
+ensureSpaceBeforeBrackets('text(note)');
+// Output: 'text (note)'
+
+ensureSpaceBeforeBrackets('text   (note)');
+// Output: 'text (note)'
+```
+
+---
+
 ### `extractInitials`
 
 Extracts initials from the input string, typically for names or titles.
@@ -223,6 +239,22 @@ Adds line breaks after punctuation marks such as periods, exclamation points, an
 insertLineBreaksAfterPunctuation('Text.');
 // Output: 'Text.
 '
+```
+
+---
+
+### `isBalanced`
+
+Checks if both quotes and brackets are balanced in a string. A string is considered balanced when all double quotes have matching pairs (even count) and all brackets (parentheses, square brackets, curly braces) are properly matched and nested.
+
+#### Example:
+
+```javascript
+isBalanced('He said "Hello (world)!"');
+// Output: true
+
+isBalanced('He said "Hello (world!"');
+// Output: false (unbalanced quote)
 ```
 
 ---
@@ -394,6 +426,22 @@ removeNumbersAndDashes('ABC 123-Xyz');
 
 ---
 
+### `removeRedundantPunctuation`
+
+Removes redundant punctuation marks that follow Arabic question marks or exclamation marks. This function cleans up text by removing periods (.) or Arabic commas (،) that immediately follow Arabic question marks (؟) or exclamation marks (!).
+
+#### Example:
+
+```javascript
+removeRedundantPunctuation('كيف حالك؟.');
+// Output: 'كيف حالك؟'
+
+removeRedundantPunctuation('ممتاز!،');
+// Output: 'ممتاز!'
+```
+
+---
+
 ### `removeSingleDigitReferences`
 
 Removes single digit references like (1), «2», [3] from the text.
@@ -433,15 +481,21 @@ removeSolitaryArabicLetters('ب ا الكلمات ت');
 
 ---
 
-### `removeTatwil`
+### `removeTatwil` (Updated)
 
-Removes tatweel characters from Arabic text while preserving the Hijri years.
+Removes tatweel characters while preserving dates references and numbered list items. Example: "1435/3/29 هـ" remains as "1435/3/29 هـ" but "أبـــتِـــكَةُ" becomes "أبتِكَةُ". Also preserves tatweels in numbered list items like "3 ـ item".
 
 #### Example:
 
 ```javascript
 removeTatwil('أبـــتِـــكَةُ');
 // Output: 'أبتِكَةُ'
+
+removeTatwil('1435/3/29 هـ');
+// Output: '1435/3/29 هـ' (unchanged)
+
+removeTatwil('3 ـ وشريط');
+// Output: '3 ـ وشريط' (unchanged)
 ```
 
 ---
@@ -466,6 +520,22 @@ Replaces 'alif maqsurah' (ى) with 'ya' (ي).
 ```javascript
 replaceAlifMaqsurah('رؤيى');
 // Output: 'رؤيي'
+```
+
+---
+
+### `replaceDoubleBracketsWithArrows`
+
+Replaces double parentheses with single arrow quotation marks. Converts `((text))` format to `«text»` format, handling optional spaces inside the brackets.
+
+#### Example:
+
+```javascript
+replaceDoubleBracketsWithArrows('((text))');
+// Output: '«text»'
+
+replaceDoubleBracketsWithArrows('(( spaced text ))');
+// Output: '«spaced text»'
 ```
 
 ---

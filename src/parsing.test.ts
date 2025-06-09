@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { isJsonStructureValid, normalizeJsonSyntax, splitByQuotes } from './parsing';
+import { isBalanced, isJsonStructureValid, normalizeJsonSyntax, splitByQuotes } from './parsing';
 
 describe('parsing', () => {
     describe('normalizeJsonSyntax', () => {
@@ -91,6 +91,124 @@ describe('parsing', () => {
         it('should handle strings with a single word in quotes', () => {
             const result = splitByQuotes('"single"');
             expect(result).toEqual(['single']);
+        });
+    });
+
+    describe('isBalanced', () => {
+        describe('balanced strings', () => {
+            it('should return true for string with balanced quotes and brackets', () => {
+                expect(isBalanced('He said "Hello (world)!"')).toBe(true);
+            });
+
+            it('should return true for string with no quotes or brackets', () => {
+                expect(isBalanced('Hello world')).toBe(true);
+            });
+
+            it('should return true for empty string', () => {
+                expect(isBalanced('')).toBe(true);
+            });
+
+            it('should return true for balanced nested brackets', () => {
+                expect(isBalanced('((([])))')).toBe(true);
+            });
+
+            it('should return true for multiple balanced quotes', () => {
+                expect(isBalanced('"Hello" and "world"')).toBe(true);
+            });
+
+            it('should return true for complex balanced expression', () => {
+                expect(isBalanced('function("param", [1, 2, {key: "value"}])')).toBe(true);
+            });
+
+            it('should return true for balanced Arabic text with punctuation', () => {
+                expect(isBalanced('قال "مرحبا (بالعالم)!"')).toBe(true);
+            });
+        });
+
+        describe('unbalanced quotes', () => {
+            it('should return false for single unmatched quote', () => {
+                expect(isBalanced('Hello "world')).toBe(false);
+            });
+
+            it('should return false for odd number of quotes', () => {
+                expect(isBalanced('"Hello" and "world')).toBe(false);
+            });
+
+            it('should return false for three quotes', () => {
+                expect(isBalanced('"""')).toBe(false);
+            });
+
+            it('should return false for unbalanced quotes with balanced brackets', () => {
+                expect(isBalanced('He said "Hello (world)!')).toBe(false);
+            });
+        });
+
+        describe('unbalanced brackets', () => {
+            it('should return false for unmatched opening parenthesis', () => {
+                expect(isBalanced('Hello (world')).toBe(false);
+            });
+
+            it('should return false for unmatched closing parenthesis', () => {
+                expect(isBalanced('Hello world)')).toBe(false);
+            });
+
+            it('should return false for mismatched bracket types', () => {
+                expect(isBalanced('Hello (world]')).toBe(false);
+            });
+
+            it('should return false for wrong nesting order', () => {
+                expect(isBalanced('([)]')).toBe(false);
+            });
+
+            it('should return false for unmatched square brackets', () => {
+                expect(isBalanced('[Hello world')).toBe(false);
+            });
+
+            it('should return false for unmatched curly braces', () => {
+                expect(isBalanced('{Hello world')).toBe(false);
+            });
+
+            it('should return false for multiple unmatched brackets', () => {
+                expect(isBalanced('(((')).toBe(false);
+            });
+
+            it('should return false for unbalanced brackets with balanced quotes', () => {
+                expect(isBalanced('"Hello" (world')).toBe(false);
+            });
+        });
+
+        describe('mixed unbalanced cases', () => {
+            it('should return false when both quotes and brackets are unbalanced', () => {
+                expect(isBalanced('He said "Hello (world')).toBe(false);
+            });
+
+            it('should return false for complex unbalanced expression', () => {
+                expect(isBalanced('function("param", [1, 2, {key: "value"}')).toBe(false);
+            });
+        });
+
+        describe('edge cases', () => {
+            it('should handle strings with only quotes', () => {
+                expect(isBalanced('""')).toBe(true);
+                expect(isBalanced('"')).toBe(false);
+            });
+
+            it('should handle strings with only brackets', () => {
+                expect(isBalanced('()')).toBe(true);
+                expect(isBalanced('(')).toBe(false);
+            });
+
+            it('should handle strings with special characters', () => {
+                expect(isBalanced('Hello! @#$%^&* (world)')).toBe(true);
+            });
+
+            it('should handle strings with numbers', () => {
+                expect(isBalanced('Value is "123" and array[0]')).toBe(true);
+            });
+
+            it('should handle newlines and whitespace', () => {
+                expect(isBalanced('Line 1\n"Line 2" (with brackets)\nLine 3')).toBe(true);
+            });
         });
     });
 });

@@ -14,6 +14,7 @@ import {
     condensePeriods,
     condenseUnderscores,
     doubleToSingleBrackets,
+    ensureSpaceBeforeBrackets,
     formatStringBySentence,
     hasWordInSingleLine,
     insertLineBreaksAfterPunctuation,
@@ -22,7 +23,9 @@ import {
     normalizeSpaces,
     reduceMultilineBreaksToDouble,
     reduceMultilineBreaksToSingle,
+    removeRedundantPunctuation,
     removeSpaceInsideBrackets,
+    replaceDoubleBracketsWithArrows,
     stripStyling,
     trimSpaceInsideQuotes,
 } from './formatting';
@@ -91,6 +94,129 @@ describe('formatting', () => {
 
         it('should not find any words by itself', () => {
             expect(hasWordInSingleLine(['فأولئك هم', 'وإياك إياك'].join('\n'))).toBe(false);
+        });
+    });
+
+    describe('removeRedundantPunctuation', () => {
+        it('should remove period after Arabic question mark', () => {
+            expect(removeRedundantPunctuation('كيف حالك؟.')).toEqual('كيف حالك؟');
+        });
+
+        it('should remove Arabic comma after Arabic question mark', () => {
+            expect(removeRedundantPunctuation('ما اسمك؟،')).toEqual('ما اسمك؟');
+        });
+
+        it('should remove period after exclamation mark', () => {
+            expect(removeRedundantPunctuation('رائع!.')).toEqual('رائع!');
+        });
+
+        it('should remove Arabic comma after exclamation mark', () => {
+            expect(removeRedundantPunctuation('عظيم!،')).toEqual('عظيم!');
+        });
+
+        it('should handle multiple occurrences in the same text', () => {
+            expect(removeRedundantPunctuation('كيف حالك؟. وأنت؟، كيف تشعر!.')).toEqual('كيف حالك؟ وأنت؟ كيف تشعر!');
+        });
+
+        it('should not affect standalone periods', () => {
+            expect(removeRedundantPunctuation('هذا جيد.')).toEqual('هذا جيد.');
+        });
+
+        it('should not affect standalone Arabic commas', () => {
+            expect(removeRedundantPunctuation('أحب القراءة، والكتابة')).toEqual('أحب القراءة، والكتابة');
+        });
+
+        it('should not affect question marks without following punctuation', () => {
+            expect(removeRedundantPunctuation('كيف حالك؟ أنا بخير')).toEqual('كيف حالك؟ أنا بخير');
+        });
+
+        it('should not affect exclamation marks without following punctuation', () => {
+            expect(removeRedundantPunctuation('ممتاز! شكراً لك')).toEqual('ممتاز! شكراً لك');
+        });
+
+        it('should handle empty string', () => {
+            expect(removeRedundantPunctuation('')).toEqual('');
+        });
+
+        it('should handle text with no punctuation', () => {
+            expect(removeRedundantPunctuation('مرحبا بك')).toEqual('مرحبا بك');
+        });
+    });
+
+    describe('ensureSpaceBeforeBrackets', () => {
+        it('should add space before brackets when missing', () => {
+            expect(ensureSpaceBeforeBrackets('text(note)')).toEqual('text (note)');
+        });
+
+        it('should preserve existing single space before brackets', () => {
+            expect(ensureSpaceBeforeBrackets('text (note)')).toEqual('text (note)');
+        });
+
+        it('should normalize multiple spaces to single space before brackets', () => {
+            expect(ensureSpaceBeforeBrackets('text   (note)')).toEqual('text (note)');
+        });
+
+        it('should handle multiple bracket pairs in the same text', () => {
+            expect(ensureSpaceBeforeBrackets('first(one)second(two)')).toEqual('first (one)second (two)');
+        });
+
+        it('should handle mixed spacing scenarios', () => {
+            expect(ensureSpaceBeforeBrackets('good (spaced)bad(nospace)multiple   (spaces)')).toEqual(
+                'good (spaced)bad (nospace)multiple (spaces)',
+            );
+        });
+
+        it('should work with Arabic text', () => {
+            expect(ensureSpaceBeforeBrackets('النص(ملاحظة)')).toEqual('النص (ملاحظة)');
+        });
+
+        it('should work with numbers', () => {
+            expect(ensureSpaceBeforeBrackets('123(note)')).toEqual('123 (note)');
+        });
+
+        it('should handle empty brackets', () => {
+            expect(ensureSpaceBeforeBrackets('text()')).toEqual('text ()');
+        });
+
+        it('should handle brackets with special characters inside', () => {
+            expect(ensureSpaceBeforeBrackets('text(note: 123!@#)')).toEqual('text (note: 123!@#)');
+        });
+
+        it('should not affect brackets at the start of text', () => {
+            expect(ensureSpaceBeforeBrackets('(note) text')).toEqual('(note) text');
+        });
+
+        it('should not affect brackets preceded by whitespace', () => {
+            expect(ensureSpaceBeforeBrackets('text\n(note)')).toEqual('text\n(note)');
+            expect(ensureSpaceBeforeBrackets('text\t(note)')).toEqual('text\t(note)');
+        });
+
+        it('should handle nested content with commas and periods', () => {
+            expect(ensureSpaceBeforeBrackets('author(Smith, J. et al.)')).toEqual('author (Smith, J. et al.)');
+        });
+
+        it('should handle brackets with multilingual content', () => {
+            expect(ensureSpaceBeforeBrackets('word(English and عربي)')).toEqual('word (English and عربي)');
+        });
+
+        it('should handle text with no brackets', () => {
+            expect(ensureSpaceBeforeBrackets('regular text without brackets')).toEqual('regular text without brackets');
+        });
+
+        it('should handle empty string', () => {
+            expect(ensureSpaceBeforeBrackets('')).toEqual('');
+        });
+
+        it('should handle only brackets', () => {
+            expect(ensureSpaceBeforeBrackets('()')).toEqual('()');
+        });
+
+        it('should handle multiple consecutive bracket pairs', () => {
+            expect(ensureSpaceBeforeBrackets('text(first)(second)')).toEqual('text (first)(second)');
+        });
+
+        it('should preserve brackets that are part of larger expressions', () => {
+            expect(ensureSpaceBeforeBrackets('formula(a+b)(c+d)')).toEqual('formula (a+b)(c+d)');
         });
     });
 
@@ -378,6 +504,17 @@ describe('formatting', () => {
         it('should handle string with no double brackets', () => {
             const str = 'الحمد لله رب العالمين';
             expect(doubleToSingleBrackets(str)).toEqual(str);
+        });
+    });
+
+    describe('replaceDoubleBracketsWithArrows', () => {
+        it('should reduce the brackets', () => {
+            expect(replaceDoubleBracketsWithArrows('((text)) [[array]]')).toEqual('«text» [[array]]');
+        });
+
+        it('should handle string with no double brackets', () => {
+            const str = 'الحمد لله رب العالمين';
+            expect(replaceDoubleBracketsWithArrows(str)).toEqual(str);
         });
     });
 

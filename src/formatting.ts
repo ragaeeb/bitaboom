@@ -22,9 +22,9 @@ export const insertLineBreaksAfterPunctuation = (text: string): string => {
  */
 export const addSpaceBeforeAndAfterPunctuation = (text: string): string => {
     return text
-        .replace(/( ?)([.!?,،؟;؛])((?![ '”“\)"\]\n])|(?=\s{2,}))/g, '$1$2 ')
-        .replace(/\s([.!?,،؟;؛])\s*([ '”“\)"\]\n])/g, '$1$2')
-        .replace(/([^\s\w\d'”“\)"\]]+)\s+([.!?,،؟;؛])|([.!?,،؟;؛])\s+$/g, '$1$2$3')
+        .replace(/( ?)([.!?,،؟;؛])((?![ '”“)"\]\n])|(?=\s{2,}))/g, '$1$2 ')
+        .replace(/\s([.!?,،؟;؛])\s*([ '”“)"\]\n])/g, '$1$2')
+        .replace(/([^\s\w\d'”“)"\]]+)\s+([.!?,،؟;؛])|([.!?,،؟;؛])\s+$/g, '$1$2$3')
         .replace(/(?<=\D)( ?: ?)(?!(\d+:)|(:\d+))|(?<=\d) ?: ?(?=\D)|(?<=\D) ?: ?(?=\d)/g, ': ');
 };
 
@@ -117,7 +117,7 @@ export const condenseAsterisks = (text: string): string => {
  * @returns {string} - The modified text with condensed colons.
  */
 export const condenseColons = (text: string): string => {
-    return text.replace(/[\.-]?:[\.-]?/g, ':');
+    return text.replace(/[.-]?:[.-]?/g, ':');
 };
 
 /**
@@ -191,6 +191,16 @@ export const doubleToSingleBrackets = (text: string): string => {
 };
 
 /**
+ * Replaces double parentheses single a single arrow variation.
+ * Example: '((text))' becomes '«text»'.
+ * @param {string} text - The input text to apply the rule to.
+ * @returns {string} - The modified text with condensed brackets.
+ */
+export const replaceDoubleBracketsWithArrows = (text: string) => {
+    return text.replace(/\(\(\s?/g, '«').replace(/\s?\)\)/g, '»');
+};
+
+/**
  * Formats a multiline string by joining sentences and maintaining footnotes on their own lines.
  * Footnotes are identified by Arabic and English numerals.
  * Example: 'Sentence one.\n(1) A footnote.\nSentence two.' remains the same, while regular sentences are joined.
@@ -253,13 +263,43 @@ export const normalizeSpaces = (text: string): string => {
 };
 
 /**
+ * Ensures at most 1 space exists before any word before brackets.
+ * Adds a space if there isn't one, or reduces multiple spaces to one.
+ * @param {string} text - The input text to modify
+ * @returns {string} - The modified text with proper spacing before brackets
+ */
+export const ensureSpaceBeforeBrackets = (text: string): string => {
+    return text.replace(/(\S) *(\([^)]*\))/g, '$1 $2');
+};
+
+/**
+ * Removes redundant punctuation marks that follow Arabic question marks or exclamation marks.
+ * This function cleans up text by removing periods (.) or Arabic commas (،) that immediately
+ * follow Arabic question marks (؟) or exclamation marks (!), as they are considered redundant
+ * in proper Arabic punctuation.
+ *
+ * @param text - The Arabic text to clean up
+ * @returns The text with redundant punctuation removed
+ *
+ * @example
+ * ```typescript
+ * removeRedundantPunctuation('كيف حالك؟.') // Returns: 'كيف حالك؟'
+ * removeRedundantPunctuation('ممتاز!،') // Returns: 'ممتاز!'
+ * removeRedundantPunctuation('هذا جيد.') // Returns: 'هذا جيد.' (unchanged)
+ * ```
+ */
+export const removeRedundantPunctuation = (text: string) => {
+    return text.replace(/([؟!])[.،]/g, '$1');
+};
+
+/**
  * Removes spaces inside brackets, parentheses, or square brackets.
  * Example: '( a b )' becomes '(a b)'.
  * @param {string} text - The input text with spaces inside brackets.
  * @returns {string} - The modified text with spaces removed inside brackets.
  */
 export const removeSpaceInsideBrackets = (text: string): string => {
-    return text.replace(/([\[\(])\s*(.*?)\s*([\]\)])/g, '$1$2$3');
+    return text.replace(/([[(])\s*(.*?)\s*([\])])/g, '$1$2$3');
 };
 
 /**

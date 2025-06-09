@@ -219,6 +219,10 @@ describe('arabic', () => {
         it('should not affect numbering', () => {
             expect(removeTatwil('4ـ ومدح لكتاب')).toEqual('4ـ ومدح لكتاب');
         });
+
+        it('should not indexed list item', () => {
+            expect(removeTatwil('3 ـ وشريط ')).toEqual('3 ـ وشريط ');
+        });
     });
 
     describe('stripZeroWidthCharacters', () => {
