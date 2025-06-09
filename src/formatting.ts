@@ -4,7 +4,7 @@
  * @param {string} text - The input text containing punctuation.
  * @returns {string} - The modified text with line breaks added after punctuation.
  */
-export const insertLineBreaksAfterPunctuation = (text: string): string => {
+export const insertLineBreaksAfterPunctuation = (text: string) => {
     // Define the punctuation marks that should trigger a new line
     const punctuation = /([.?!؟])/g;
 
@@ -20,7 +20,7 @@ export const insertLineBreaksAfterPunctuation = (text: string): string => {
  * @param {string} text - The input text containing punctuation.
  * @returns {string} - The modified text with spaces added before and after punctuation.
  */
-export const addSpaceBeforeAndAfterPunctuation = (text: string): string => {
+export const addSpaceBeforeAndAfterPunctuation = (text: string) => {
     return text
         .replace(/( ?)([.!?,،؟;؛])((?![ '”“)"\]\n])|(?=\s{2,}))/g, '$1$2 ')
         .replace(/\s([.!?,،؟;؛])\s*([ '”“)"\]\n])/g, '$1$2')
@@ -35,7 +35,7 @@ export const addSpaceBeforeAndAfterPunctuation = (text: string): string => {
  * @param {string} text - The input text to apply the rule to.
  * @returns {string} - The modified text with smart quotes applied.
  */
-export const applySmartQuotes = (text: string): string => {
+export const applySmartQuotes = (text: string) => {
     return text
         .replace(/[“”]/g, '"')
         .replace(/"([^"]*)"/g, '“$1”')
@@ -48,7 +48,7 @@ export const applySmartQuotes = (text: string): string => {
  * @param {string} text - The input text containing literal new lines.
  * @returns {string} - The modified text with actual line breaks.
  */
-export const cleanLiteralNewLines = (text: string): string => {
+export const cleanLiteralNewLines = (text: string) => {
     return text.replace(/\\n|\r/g, '\n');
 };
 
@@ -58,7 +58,7 @@ export const cleanLiteralNewLines = (text: string): string => {
  * @param {string} text - The input text to apply the rule to.
  * @returns {string} - The modified text with trailing spaces removed.
  */
-export const cleanMultilines = (text: string): string => {
+export const cleanMultilines = (text: string) => {
     return text.replace(/^ +| +$/gm, '');
 };
 
@@ -81,7 +81,7 @@ export const isOnlyPunctuation = (text: string): boolean => {
     return regex.test(text);
 };
 
-export const cleanJunkFromText = (text: string): string => {
+export const cleanJunkFromText = (text: string) => {
     const newBody = cleanMultilines(text);
     const lines = newBody.split('\n').filter((line) => {
         return !line || (line.length > 1 && !isOnlyPunctuation(line));
@@ -96,7 +96,7 @@ export const cleanJunkFromText = (text: string): string => {
  * @param {string} text - The input text to apply the rule to.
  * @returns {string} - The modified text with cleaned spaces before punctuation.
  */
-export const cleanSpacesBeforePeriod = (text: string): string => {
+export const cleanSpacesBeforePeriod = (text: string) => {
     return text.replace(/\s+([.؟!,،؛:?])/g, '$1');
 };
 
@@ -106,7 +106,7 @@ export const cleanSpacesBeforePeriod = (text: string): string => {
  * @param {string} text - The input text to apply the rule to.
  * @returns {string} - The modified text with condensed asterisks.
  */
-export const condenseAsterisks = (text: string): string => {
+export const condenseAsterisks = (text: string) => {
     return text.replace(/(\*\s*)+/g, '*');
 };
 
@@ -116,7 +116,7 @@ export const condenseAsterisks = (text: string): string => {
  * @param {string} text - The input text to apply the rule to.
  * @returns {string} - The modified text with condensed colons.
  */
-export const condenseColons = (text: string): string => {
+export const condenseColons = (text: string) => {
     return text.replace(/[.-]?:[.-]?/g, ':');
 };
 
@@ -126,7 +126,7 @@ export const condenseColons = (text: string): string => {
  * @param {string} text - The input text to apply the rule to.
  * @returns {string} - The modified text with condensed dashes.
  */
-export const condenseDashes = (text: string): string => {
+export const condenseDashes = (text: string) => {
     return text.replace(/-{2,}/g, '-');
 };
 
@@ -136,7 +136,7 @@ export const condenseDashes = (text: string): string => {
  * @param {string} text - The input text to apply the rule to.
  * @returns {string} - The modified text with ellipses condensed.
  */
-export const condenseEllipsis = (text: string): string => {
+export const condenseEllipsis = (text: string) => {
     return text.replace(/\.{2,}/g, '…');
 };
 
@@ -146,7 +146,7 @@ export const condenseEllipsis = (text: string): string => {
  * @param {string} text - The input text to apply the rule to.
  * @returns {string} - The modified text with condensed line breaks.
  */
-export const reduceMultilineBreaksToDouble = (text: string): string => {
+export const reduceMultilineBreaksToDouble = (text: string) => {
     return text.replace(/(\n\s*){3,}/g, '\n\n');
 };
 
@@ -156,7 +156,7 @@ export const reduceMultilineBreaksToDouble = (text: string): string => {
  * @param {string} text - The input text to apply the rule to.
  * @returns {string} - The modified text with condensed line breaks.
  */
-export const reduceMultilineBreaksToSingle = (text: string): string => {
+export const reduceMultilineBreaksToSingle = (text: string) => {
     return text.replace(/(\n\s*){2,}/g, '\n');
 };
 
@@ -166,7 +166,7 @@ export const reduceMultilineBreaksToSingle = (text: string): string => {
  * @param {string} text - The input text to apply the rule to.
  * @returns {string} - The modified text with condensed periods.
  */
-export const condensePeriods = (text: string): string => {
+export const condensePeriods = (text: string) => {
     return text.replace(/\. +\./g, '.');
 };
 
@@ -176,7 +176,7 @@ export const condensePeriods = (text: string): string => {
  * @param {string} text - The input text to apply the rule to.
  * @returns {string} - The modified text with condensed underscores.
  */
-export const condenseUnderscores = (text: string): string => {
+export const condenseUnderscores = (text: string) => {
     return text.replace(/ـ{2,}/g, 'ـ').replace(/_+/g, '_');
 };
 
@@ -186,7 +186,7 @@ export const condenseUnderscores = (text: string): string => {
  * @param {string} text - The input text to apply the rule to.
  * @returns {string} - The modified text with condensed brackets.
  */
-export const doubleToSingleBrackets = (text: string): string => {
+export const doubleToSingleBrackets = (text: string) => {
     return text.replace(/(\(|\)){2,}|(\[|\]){2,}/g, '$1$2');
 };
 
@@ -207,7 +207,7 @@ export const replaceDoubleBracketsWithArrows = (text: string) => {
  * @param {string} input - The input text containing sentences and footnotes.
  * @returns {string} - The formatted text.
  */
-export const formatStringBySentence = (input: string): string => {
+export const formatStringBySentence = (input: string) => {
     const footnoteRegex = /^\((?:\d+|۱|۲|۳|۴|۵|۶|۷|۸|۹)\)\s/;
     const sentences: string[] = [];
     const lines = input.split('\n');
@@ -248,7 +248,7 @@ export const formatStringBySentence = (input: string): string => {
  * @param {string} text - The input text containing references.
  * @returns {string} - The modified text with spaces removed around slashes.
  */
-export const normalizeSlashInReferences = (text: string): string => {
+export const normalizeSlashInReferences = (text: string) => {
     return text.replace(/(\d+)\s?\/\s?(\d+)/g, '$1/$2');
 };
 
@@ -258,7 +258,7 @@ export const normalizeSlashInReferences = (text: string): string => {
  * @param {string} text - The input text containing extra spaces.
  * @returns {string} - The modified text with reduced spaces.
  */
-export const normalizeSpaces = (text: string): string => {
+export const normalizeSpaces = (text: string) => {
     return text.replace(/[ \t]+/g, ' ');
 };
 
@@ -268,7 +268,7 @@ export const normalizeSpaces = (text: string): string => {
  * @param {string} text - The input text to modify
  * @returns {string} - The modified text with proper spacing before brackets
  */
-export const ensureSpaceBeforeBrackets = (text: string): string => {
+export const ensureSpaceBeforeBrackets = (text: string) => {
     return text.replace(/(\S) *(\([^)]*\))/g, '$1 $2');
 };
 
@@ -298,7 +298,7 @@ export const removeRedundantPunctuation = (text: string) => {
  * @param {string} text - The input text with spaces inside brackets.
  * @returns {string} - The modified text with spaces removed inside brackets.
  */
-export const removeSpaceInsideBrackets = (text: string): string => {
+export const removeSpaceInsideBrackets = (text: string) => {
     return text.replace(/([[(])\s*(.*?)\s*([\])])/g, '$1$2$3');
 };
 
@@ -307,7 +307,7 @@ export const removeSpaceInsideBrackets = (text: string): string => {
  * @param {string} text - The input text containing bold characters.
  * @returns {string} - The modified text with bold styling removed.
  */
-export const stripBoldStyling = (text: string): string => {
+export const stripBoldStyling = (text: string) => {
     // Normalize the string to NFKD form
     const normalizedString = text.normalize('NFKD');
 
@@ -321,7 +321,7 @@ export const stripBoldStyling = (text: string): string => {
  * @param {string} text - The input text containing italicized characters.
  * @returns {string} - The modified text with italics removed.
  */
-export const stripItalicsStyling = (text: string): string => {
+export const stripItalicsStyling = (text: string) => {
     const italicMap: Record<string, string> = {
         '\uD835\uDC4E': 'I',
         '\uD835\uDC68': 'g',
@@ -392,7 +392,7 @@ export const stripItalicsStyling = (text: string): string => {
  * @param {string} text - The input text to remove styling from.
  * @returns {string} - The modified text with all styling removed.
  */
-export const stripStyling = (text: string): string => {
+export const stripStyling = (text: string) => {
     return stripItalicsStyling(stripBoldStyling(text));
 };
 
@@ -402,6 +402,6 @@ export const stripStyling = (text: string): string => {
  * @param {string} text - The input text with spaces inside quotes.
  * @returns {string} - The modified text with spaces removed inside quotes.
  */
-export const trimSpaceInsideQuotes = (text: string): string => {
+export const trimSpaceInsideQuotes = (text: string) => {
     return text.replace(/([“”"]|«) *(.*?) *([“”"]|»)/g, '$1$2$3');
 };

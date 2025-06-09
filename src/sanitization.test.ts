@@ -9,6 +9,9 @@ import {
     removeUrls,
     replaceLineBreaksWithSpaces,
     stripAllDigits,
+    truncate,
+    truncateMiddle,
+    unescapeSpaces,
 } from './sanitization';
 
 describe('sanitization', () => {
@@ -96,6 +99,113 @@ describe('sanitization', () => {
         it('should remove the url', () => {
             expect(removeUrls('It should remove both https://abc.com and http://google.com from this')).toEqual(
                 'It should remove both  and  from this',
+            );
+        });
+    });
+
+    describe('truncateMiddle', () => {
+        it('should return the original text when it is shorter than max length', () => {
+            expect(truncateMiddle('Short text', 50)).toBe('Short text');
+        });
+
+        it('should return the original text when it equals max length', () => {
+            expect(truncateMiddle('Hello', 5)).toBe('Hello');
+        });
+
+        it('should truncate with default parameters', () => {
+            expect(truncateMiddle('The quick brown fox jumps right over the lazy dog')).toBe(
+                'The quick brown fox jumps right over the lazy dog',
+            );
+        });
+
+        it('should truncate with custom max length', () => {
+            expect(truncateMiddle('The quick brown fox jumps right over the lazy dog', 20)).toBe(
+                'The quick bro…zy dog',
+            );
+        });
+
+        it('should truncate with custom end length', () => {
+            expect(truncateMiddle('The quick brown fox jumps right over the lazy dog', 25, 8)).toBe(
+                'The quick brown …lazy dog',
+            );
+        });
+
+        it('should handle very short max length by falling back to normal truncation', () => {
+            expect(truncateMiddle('Hello world', 5, 10)).toBe('Hell…');
+        });
+
+        it('should handle custom end length of 3 characters', () => {
+            expect(truncateMiddle('abcdefghijklmnopqrstuvwxyz', 10, 3)).toBe('abcdef…xyz');
+        });
+
+        it('should handle empty string', () => {
+            expect(truncateMiddle('', 10)).toBe('');
+        });
+
+        it('should handle single character string', () => {
+            expect(truncateMiddle('a', 10)).toBe('a');
+        });
+
+        it('should calculate default end length correctly', () => {
+            expect(truncateMiddle('abcdefghijklmnopqrstuvwxyz', 15)).toBe('abcdefghi…vwxyz');
+        });
+
+        it('should enforce minimum end length of 3', () => {
+            expect(truncateMiddle('Hello world test', 8)).toBe('Hell…est');
+        });
+
+        it('should handle exact boundary cases', () => {
+            expect(truncateMiddle('Hello world', 11)).toBe('Hello world');
+            expect(truncateMiddle('Hello world', 10, 5)).toBe('Hell…world');
+        });
+    });
+
+    describe('truncate', () => {
+        it('less than max', () => {
+            expect(truncate('test')).toBe('test');
+        });
+
+        it('more than max', () => {
+            expect(truncate('123456', 5)).toBe('1234…');
+        });
+    });
+
+    describe('unescapeSpaces', () => {
+        it('should replace escaped spaces with regular spaces', () => {
+            expect(unescapeSpaces('My\\ Folder\\ Name')).toBe('My Folder Name');
+        });
+
+        it('should handle multiple escaped spaces', () => {
+            expect(unescapeSpaces('path\\ with\\ many\\ spaces')).toBe('path with many spaces');
+        });
+
+        it('should trim whitespace from both ends', () => {
+            expect(unescapeSpaces('  /path/to/My\\ Document.txt  ')).toBe('/path/to/My Document.txt');
+        });
+
+        it('should handle strings without escaped spaces', () => {
+            expect(unescapeSpaces('regular text')).toBe('regular text');
+        });
+
+        it('should handle empty string', () => {
+            expect(unescapeSpaces('')).toBe('');
+        });
+
+        it('should handle only whitespace', () => {
+            expect(unescapeSpaces('   ')).toBe('');
+        });
+
+        it('should handle escaped spaces at the beginning and end', () => {
+            expect(unescapeSpaces('\\ leading and trailing\\ ')).toBe('leading and trailing');
+        });
+
+        it('should handle mixed escaped and regular spaces', () => {
+            expect(unescapeSpaces('normal spaces\\ and\\ escaped')).toBe('normal spaces and escaped');
+        });
+
+        it('should handle file paths with escaped spaces', () => {
+            expect(unescapeSpaces('/Users/xyz/My\\ Documents/Important\\ File.pdf')).toBe(
+                '/Users/xyz/My Documents/Important File.pdf',
             );
         });
     });

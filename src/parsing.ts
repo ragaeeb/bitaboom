@@ -10,7 +10,7 @@
  * const result = normalizeJsonSyntax("{10: 'abc', 20: 'def'}");
  * console.log(result); // '{"10": "abc", "20": "def"}'
  */
-export const normalizeJsonSyntax = (str: string): string => {
+export const normalizeJsonSyntax = (str: string) => {
     let input = str.replace(/(\b\d+\b)(?=:)/g, '"$1"');
     input = input.replace(/:\s*'([^']+)'/g, ': "$1"');
     input = input.replace(/:\s*"([^"]+)"/g, ': "$1"');
@@ -30,7 +30,7 @@ export const normalizeJsonSyntax = (str: string): string => {
  * const result = isJsonStructureValid("{10: 'abc', 'key': 'value'}");
  * console.log(result); // true
  */
-export const isJsonStructureValid = (str: string): boolean => {
+export const isJsonStructureValid = (str: string) => {
     // Checks for a pattern with numeric keys or quoted keys and values in quotes
     const jsonLikePattern =
         /^{(\s*(\d+|'[^']*'|"[^"]*")\s*:\s*('|")[^'"]*\3\s*,)*(?:\s*(\d+|'[^']*'|"[^"]*")\s*:\s*('|")[^'"]*\5\s*)}$/;
@@ -70,7 +70,7 @@ export const splitByQuotes = (query: string): string[] => {
  * areQuotesBalanced('No quotes') // Returns: true
  * ```
  */
-const areQuotesBalanced = (str: string): boolean => {
+const areQuotesBalanced = (str: string) => {
     let quoteCount = 0;
     for (const char of str) {
         if (char === '"') {
@@ -103,7 +103,7 @@ const closeBrackets = new Set([')', ']', '}']);
  * ```
  */
 
-const areBracketsBalanced = (str: string): boolean => {
+const areBracketsBalanced = (str: string) => {
     const stack: string[] = [];
 
     for (const char of str) {
@@ -140,6 +140,6 @@ const areBracketsBalanced = (str: string): boolean => {
  * isBalanced('Hello (world) [test]') // Returns: true
  * ```
  */
-export const isBalanced = (str: string): boolean => {
+export const isBalanced = (str: string) => {
     return areQuotesBalanced(str) && areBracketsBalanced(str);
 };

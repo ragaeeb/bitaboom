@@ -9,7 +9,7 @@ import { normalizeSpaces } from './formatting';
  * @param {string} text - The input text containing Arabic prefixes.
  * @returns {string} - The modified text with standardized 'al-' prefixes.
  */
-export const normalizeArabicPrefixesToAl = (text: string): string => {
+export const normalizeArabicPrefixesToAl = (text: string) => {
     return text
         .replace(/(\b|\W)(Al |Al-|Ar-|As-|Adh-|Ad-|Ats-|Ath |Ath-|Az |Az-|az-|adh-|as-|ar-)/g, '$1al-')
         .replace(/(\b|\W)(Ash-S|ash-S)/g, '$1al-S')
@@ -23,7 +23,7 @@ export const normalizeArabicPrefixesToAl = (text: string): string => {
  * @param {string} text - The input text containing double apostrophes.
  * @returns {string} - The modified text with condensed apostrophes.
  */
-export const normalizeDoubleApostrophes = (text: string): string => {
+export const normalizeDoubleApostrophes = (text: string) => {
     return text.replace(/ʿʿ/g, 'ʿ').replace(/ʾʾ/g, 'ʾ');
 };
 
@@ -35,7 +35,7 @@ export const normalizeDoubleApostrophes = (text: string): string => {
  * @param {string} text - The input text containing salutations.
  * @returns {string} - The modified text with salutations replaced.
  */
-export const replaceSalutationsWithSymbol = (text: string): string => {
+export const replaceSalutationsWithSymbol = (text: string) => {
     return text
         .replace(
             /\(peace be upon him\)|(Messenger of (Allah|Allāh)|Messenger|Prophet|Mu[hḥ]ammad) *\((s[^)]*m|peace[^)]*him|May[^)]*him|may[^)]*him)\)*/gi,
@@ -65,7 +65,7 @@ export const normalize = (input: string) => {
  * @param {string} text - The input text containing different apostrophe characters.
  * @returns {string} - The modified text with normalized apostrophes.
  */
-export const normalizeApostrophes = (text: string): string => {
+export const normalizeApostrophes = (text: string) => {
     return text.replace(/‛|’|‘/g, "'");
 };
 
@@ -76,7 +76,7 @@ export const normalizeApostrophes = (text: string): string => {
  * @param {string} text - The input text containing Arabic prefixes.
  * @returns {string} - The modified text with prefixes stripped.
  */
-export const removeArabicPrefixes = (text: string): string => {
+export const removeArabicPrefixes = (text: string) => {
     return normalizeSpaces(text.replace(/(\bal-|\bli-|\bbi-|\bfī|\bwa[-\s]+|\bl-|\bliʿl|\Bʿalá|\Bʿan|\bb\.)/gi, ''));
 };
 
@@ -87,7 +87,7 @@ export const removeArabicPrefixes = (text: string): string => {
  * @param {string} text - The input text to simplify.
  * @returns {string} - The simplified text.
  */
-export const normalizeTransliteratedEnglish = (text: string): string => normalize(removeArabicPrefixes(text));
+export const normalizeTransliteratedEnglish = (text: string) => normalize(removeArabicPrefixes(text));
 
 /**
  * Extracts the initials from the input string, typically used for names or titles.

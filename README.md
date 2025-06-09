@@ -654,3 +654,57 @@ stripZeroWidthCharacters('يَخْلُوَ ‏.');
 ```
 
 ---
+
+### `truncate`
+
+Truncates a string to a specified length, adding an ellipsis if truncated.
+
+#### Example:
+
+```javascript
+truncate('The quick brown fox jumps over the lazy dog', 20);
+// Output: 'The quick brown fox…'
+
+truncate('Short text', 50);
+// Output: 'Short text'
+```
+
+---
+
+### `truncateMiddle`
+
+Truncates a string from the middle, preserving both the beginning and end portions.
+
+#### Example:
+
+```javascript
+truncateMiddle('The quick brown fox jumps right over the lazy dog', 20);
+// Output: 'The quick bro…zy dog'
+
+truncateMiddle('The quick brown fox jumps right over the lazy dog', 25, 8);
+// Output: 'The quick brown …lazy dog'
+
+truncateMiddle('Short text', 50);
+// Output: 'Short text'
+```
+
+---
+
+### `unescapeSpaces`
+
+Unescapes backslash-escaped spaces and trims whitespace from both ends. Commonly used to clean file paths that have been escaped when pasted into terminals.
+
+#### Example:
+
+```javascript
+unescapeSpaces('My\\ Folder\\ Name');
+// Output: 'My Folder Name'
+
+unescapeSpaces('  /path/to/My\\ Document.txt  ');
+// Output: '/path/to/My Document.txt'
+
+unescapeSpaces('regular text');
+// Output: 'regular text'
+```
+
+---
