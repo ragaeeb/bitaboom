@@ -94,8 +94,20 @@ export const removeMarkdownFormatting = (text: string) => {
         text
             // Remove bold first (**text**) - must come before italics
             .replace(/\*\*([^*]+)\*\*/g, '$1')
+            // Remove bold with underscores (__text__)
+            .replace(/__([^_]+)__/g, '$1')
             // Remove italics (*text*)
             .replace(/\*([^*]+)\*/g, '$1')
+            // Remove italics with underscores (_text_)
+            .replace(/_([^_]+)_/g, '$1')
+            // Remove strikethrough (~~text~~)
+            .replace(/~~([^~]+)~~/g, '$1')
+            // Remove blockquotes
+            .replace(/^\s*>\s?/gm, '')
+            // Remove images ![alt](url)
+            .replace(/!\[[^\]]*]\([^)]*\)/g, '')
+            // Convert links [text](url) -> text
+            .replace(/\[([^\]]+)]\([^)]*\)/g, '$1')
             // Remove headers (# ## ### etc.)
             .replace(/^#+\s*/gm, '')
             // Remove unordered list markers (- * +)

@@ -1,5 +1,4 @@
 import eslint from '@eslint/js';
-import eslintConfigPrettier from 'eslint-config-prettier';
 import perfectionist from 'eslint-plugin-perfectionist';
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import globals from 'globals';
@@ -11,7 +10,6 @@ export default tseslint.config(
     perfectionist.configs['recommended-natural'],
     { languageOptions: { ecmaVersion: 'latest', globals: globals.es2025, sourceType: 'module' } },
     eslintPluginPrettierRecommended,
-    eslintConfigPrettier,
     {
         rules: {
             '@typescript-eslint/no-explicit-any': 'off',

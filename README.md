@@ -13,7 +13,7 @@
 
 # Bitaboom - A String Utilities Library
 
-Bitaboom is a NodeJS string utility library written in TypeScript, designed to provide a collection of helpful string manipulation functions. It supports the latest ESNext features and is tested using Vitest.
+Bitaboom is a NodeJS string utility library written in TypeScript, designed to provide a collection of helpful string manipulation functions. It supports the latest ESNext features and is tested using Bun's test runner.
 
 ## Demo
 
@@ -29,6 +29,8 @@ npm install bitaboom
 yarn add bitaboom
 # or
 pnpm i bitaboom
+# or
+bun add bitaboom
 ```
 
 ## Usage
@@ -52,7 +54,7 @@ console.log(result);
 
 Adds spaces before and after punctuation marks except in specific cases like quoted text.
 
-#### Example:
+#### Example
 
 ```javascript
 addSpaceBeforeAndAfterPunctuation('Text,word');
@@ -65,7 +67,7 @@ addSpaceBeforeAndAfterPunctuation('Text,word');
 
 Inserts spaces between Arabic text and numbers.
 
-#### Example:
+#### Example
 
 ```javascript
 addSpaceBetweenArabicTextAndNumbers('الآية37');
@@ -78,7 +80,7 @@ addSpaceBetweenArabicTextAndNumbers('الآية37');
 
 Turns regular double quotes into smart quotes and fixes any incorrect starting quotes.
 
-#### Example:
+#### Example
 
 ```javascript
 applySmartQuotes('The "quick brown" fox');
@@ -91,7 +93,7 @@ applySmartQuotes('The "quick brown" fox');
 
 Removes extreme Arabic underscores (ـ) from the beginning or end of lines. It does not affect Hijri dates or certain Arabic terms.
 
-#### Example:
+#### Example
 
 ```javascript
 cleanExtremeArabicUnderscores('ـThis is a textـ');
@@ -104,7 +106,7 @@ cleanExtremeArabicUnderscores('ـThis is a textـ');
 
 Cleans unnecessary spaces and punctuation from text.
 
-#### Example:
+#### Example
 
 ```javascript
 cleanJunkFromText('Some text !@#\nAnother line.');
@@ -115,7 +117,7 @@ cleanJunkFromText('Some text !@#\nAnother line.');
 
 Replaces literal new line characters (`\n`) with actual line breaks.
 
-#### Example:
+#### Example
 
 ```javascript
 cleanLiteralNewLines('A\nB');
@@ -128,7 +130,7 @@ cleanLiteralNewLines('A\nB');
 
 Removes trailing spaces from each line in a multiline string.
 
-#### Example:
+#### Example
 
 ```javascript
 cleanMultilines(' This is a line   \nAnother line   ');
@@ -141,7 +143,7 @@ cleanMultilines(' This is a line   \nAnother line   ');
 
 Removes various symbols, part references, and numerical markers from the text.
 
-#### Example:
+#### Example
 
 ```javascript
 cleanSymbolsAndPartReferences('(1) (2/3)');
@@ -154,7 +156,7 @@ cleanSymbolsAndPartReferences('(1) (2/3)');
 
 Removes trailing page numbers formatted as `-[46]-` from the text.
 
-#### Example:
+#### Example
 
 ```javascript
 cleanTrailingPageNumbers('This is some -[46]- text');
@@ -167,7 +169,7 @@ cleanTrailingPageNumbers('This is some -[46]- text');
 
 Converts Urdu symbols like 'ھ' and 'ی' to their Arabic equivalents 'ه' and 'ي'.
 
-#### Example:
+#### Example
 
 ```javascript
 convertUrduSymbolsToArabic('ھذا');
@@ -180,7 +182,7 @@ convertUrduSymbolsToArabic('ھذا');
 
 Ensures there is exactly one space before parentheses that follow non-whitespace characters. Normalizes multiple spaces to a single space.
 
-#### Example:
+#### Example
 
 ```javascript
 ensureSpaceBeforeBrackets('text(note)');
@@ -196,7 +198,7 @@ ensureSpaceBeforeBrackets('text   (note)');
 
 Ensures at most 1 space exists before any word before Arabic quotation marks. Adds a space if there isn't one, or reduces multiple spaces to one.
 
-#### Example:
+#### Example
 
 ```javascript
 ensureSpaceBeforeQuotes('text«quote»');
@@ -212,7 +214,7 @@ ensureSpaceBeforeQuotes('text   «quote»');
 
 Extracts initials from the input string, typically for names or titles.
 
-#### Example:
+#### Example
 
 ```javascript
 extractInitials('Nayl al-Awtar');
@@ -223,7 +225,7 @@ extractInitials('Nayl al-Awtar');
 
 Fixes common bracket and quotation mark typos in text. Corrects malformed patterns like "(«", "»)", and misplaced digits in brackets.
 
-#### Example:
+#### Example
 
 ```javascript
 fixBracketTypos('(«text»)');
@@ -239,7 +241,7 @@ fixBracketTypos(')5)');
 
 Fixes mismatched curly braces by converting incorrect bracket/brace combinations to proper curly braces { }.
 
-#### Example:
+#### Example
 
 ```javascript
 fixCurlyBraces('(content}');
@@ -255,7 +257,7 @@ fixCurlyBraces('{content)');
 
 Fixes mismatched quotation marks in Arabic text by converting various incorrect bracket/quote combinations to proper Arabic quotation marks (« »).
 
-#### Example:
+#### Example
 
 ```javascript
 fixMismatchedQuotationMarks('«text)');
@@ -271,7 +273,7 @@ fixMismatchedQuotationMarks('(text»');
 
 Corrects unnecessary trailing "و" in greetings or phrases.
 
-#### Example:
+#### Example
 
 ```javascript
 fixTrailingWow('السلام عليكم و رحمة');
@@ -284,7 +286,7 @@ fixTrailingWow('السلام عليكم و رحمة');
 
 Calculates the proportion of Arabic characters in text relative to total non-whitespace characters.
 
-#### Example:
+#### Example
 
 ```javascript
 getArabicScore('مرحبا hello');
@@ -300,7 +302,7 @@ getArabicScore('مرحبا');
 
 Checks if a line has any word by itself.
 
-#### Example:
+#### Example
 
 ```javascript
 hasWordInSingleLine('Abc efg\nhij\nklmn opq');
@@ -313,7 +315,7 @@ hasWordInSingleLine('Abc efg\nhij\nklmn opq');
 
 Adds line breaks after punctuation marks such as periods, exclamation points, and question marks.
 
-#### Example:
+#### Example
 
 ```javascript
 insertLineBreaksAfterPunctuation('Text.');
@@ -327,7 +329,7 @@ insertLineBreaksAfterPunctuation('Text.');
 
 Detects if text is entirely in uppercase letters.
 
-#### Example:
+#### Example
 
 ```javascript
 isAllUppercase('HELLO WORLD');
@@ -346,7 +348,7 @@ isAllUppercase('123');
 
 Checks if both quotes and brackets are balanced in a string. A string is considered balanced when all double quotes have matching pairs (even count) and all brackets (parentheses, square brackets, curly braces) are properly matched and nested.
 
-#### Example:
+#### Example
 
 ```javascript
 isBalanced('He said "Hello (world)!"');
@@ -362,7 +364,7 @@ isBalanced('He said "Hello (world!"');
 
 Checks if a given string resembles a JSON object with numeric or quoted keys and values that are single or double quoted. Useful for detecting malformed JSON-like structures that can be fixed.
 
-#### Example:
+#### Example
 
 ```javascript
 isJsonStructureValid("{10: 'abc', 'key': 'value'}");
@@ -375,7 +377,7 @@ isJsonStructureValid("{10: 'abc', 'key': 'value'}");
 
 Checks if the input string consists only of punctuation characters.
 
-#### Example:
+#### Example
 
 ```javascript
 isOnlyPunctuation('!?');
@@ -388,7 +390,7 @@ isOnlyPunctuation('!?');
 
 Creates a diacritic-insensitive regex pattern for Arabic text matching. Normalizes text, handles character equivalences (ا/آ/أ/إ, ة/ه, ى/ي), and makes each character tolerant of Arabic diacritics (Tashkeel/Harakat).
 
-#### Example:
+#### Example
 
 ```javascript
 const pattern = makeDiacriticInsensitive('محمد');
@@ -403,7 +405,7 @@ regex.test('محمد'); // true
 
 Simplifies all forms of 'alif' (أ, إ, and آ) to the basic 'ا'.
 
-#### Example:
+#### Example
 
 ```javascript
 normalizeAlifVariants('أنا إلى الآفاق');
@@ -414,7 +416,7 @@ normalizeAlifVariants('أنا إلى الآفاق');
 
 Replaces various apostrophe characters like ‛, ', and ' with the standard apostrophe (').
 
-#### Example:
+#### Example
 
 ```javascript
 normalizeApostrophes('‛ulama' al-su'');
@@ -425,9 +427,9 @@ normalizeApostrophes('‛ulama' al-su'');
 
 ### `normalizeArabicPrefixesToAl`
 
-Replaces common Arabic prefixes like 'Al-', 'Ar-', 'Ash-', etc., with 'al-' in the text. It handles different variations of prefixes but does not modify cases where the second word does not start with 'S'.
+Replaces common Arabic prefixes like 'Al-', 'Ar-', 'Ash-', etc., with 'al-' in the text. Handles variations and lam-assimilation patterns (before sun letters), and avoids changes where assimilation rules do not apply.
 
-#### Example:
+#### Example
 
 ```javascript
 normalizeArabicPrefixesToAl('Ash-Shafiee');
@@ -440,7 +442,7 @@ normalizeArabicPrefixesToAl('Ash-Shafiee');
 
 Removes double occurrences of Arabic apostrophes such as ʿʿ or ʾʾ.
 
-#### Example:
+#### Example
 
 ```javascript
 normalizeDoubleApostrophes('ʿulamāʾʾ');
@@ -453,7 +455,7 @@ normalizeDoubleApostrophes('ʿulamāʾʾ');
 
 Converts a string that resembles JSON but has numeric keys and single-quoted values into valid JSON format. The function replaces numeric keys with quoted numeric keys and ensures all values are double-quoted, as required by JSON.
 
-#### Example:
+#### Example
 
 ```javascript
 normalizeJsonSyntax("{10: 'abc', 20: 'def'}");
@@ -466,7 +468,7 @@ normalizeJsonSyntax("{10: 'abc', 20: 'def'}");
 
 Simplifies English transliterations by removing diacritics, apostrophes, and common prefixes.
 
-#### Example:
+#### Example
 
 ```javascript
 normalizeTransliteratedEnglish('Al-Jadwāl');
@@ -479,7 +481,7 @@ normalizeTransliteratedEnglish('Al-Jadwāl');
 
 Normalizes the text by removing diacritics, apostrophes, and dashes.
 
-#### Example:
+#### Example
 
 ```javascript
 normalize('Al-Jadwāl');
@@ -492,7 +494,7 @@ normalize('Al-Jadwāl');
 
 Parses page input string into array of page numbers, supporting ranges and lists.
 
-#### Example:
+#### Example
 
 ```javascript
 parsePageRanges('1-5');
@@ -511,7 +513,7 @@ parsePageRanges('10-8');
 
 Strips common Arabic prefixes like 'al-', 'bi-', 'fī', 'wa-', etc., from the beginning of words.
 
-#### Example:
+#### Example
 
 ```javascript
 removeArabicPrefixes('al-Bukhari');
@@ -524,7 +526,7 @@ removeArabicPrefixes('al-Bukhari');
 
 Removes death year references like "(d. 390H)" and "[d. 100h]" from the text.
 
-#### Example:
+#### Example
 
 ```javascript
 removeDeathYear('Sufyān ibn 'Uyaynah (d. 198h)');
@@ -537,7 +539,7 @@ removeDeathYear('Sufyān ibn 'Uyaynah (d. 198h)');
 
 Removes common Markdown formatting syntax from text.
 
-#### Example:
+#### Example
 
 ```javascript
 removeMarkdownFormatting('**Bold** and *italic* text');
@@ -553,7 +555,7 @@ removeMarkdownFormatting('# Header\n- List item');
 
 Removes single-digit numbers and dashes from Arabic text but preserves numbers used as indexes.
 
-#### Example:
+#### Example
 
 ```javascript
 removeNonIndexSignatures('الورقه 3 المصدر');
@@ -566,7 +568,7 @@ removeNonIndexSignatures('الورقه 3 المصدر');
 
 Removes numeric digits and dashes from the text.
 
-#### Example:
+#### Example
 
 ```javascript
 removeNumbersAndDashes('ABC 123-Xyz');
@@ -579,7 +581,7 @@ removeNumbersAndDashes('ABC 123-Xyz');
 
 Removes redundant punctuation marks that follow Arabic question marks or exclamation marks. This function cleans up text by removing periods (.) or Arabic commas (،) that immediately follow Arabic question marks (؟) or exclamation marks (!).
 
-#### Example:
+#### Example
 
 ```javascript
 removeRedundantPunctuation('كيف حالك؟.');
@@ -595,7 +597,7 @@ removeRedundantPunctuation('ممتاز!،');
 
 Removes single digit references like (1), «2», [3] from the text.
 
-#### Example:
+#### Example
 
 ```javascript
 removeSingleDigitReferences('Ref (1), Ref «2», Ref [3]');
@@ -608,7 +610,7 @@ removeSingleDigitReferences('Ref (1), Ref «2», Ref [3]');
 
 Removes Arabic letters or Arabic-Indic numerals enclosed in square brackets or parentheses.
 
-#### Example:
+#### Example
 
 ```javascript
 removeSingularCodes('[س]');
@@ -621,7 +623,7 @@ removeSingularCodes('[س]');
 
 Removes solitary Arabic letters unless they are 'ha' used in Hijri years.
 
-#### Example:
+#### Example
 
 ```javascript
 removeSolitaryArabicLetters('ب ا الكلمات ت');
@@ -634,7 +636,7 @@ removeSolitaryArabicLetters('ب ا الكلمات ت');
 
 Removes tatweel characters while preserving dates references and numbered list items. Example: "1435/3/29 هـ" remains as "1435/3/29 هـ" but "أبـــتِـــكَةُ" becomes "أبتِكَةُ". Also preserves tatweels in numbered list items like "3 ـ item".
 
-#### Example:
+#### Example
 
 ```javascript
 removeTatwil('أبـــتِـــكَةُ');
@@ -653,7 +655,7 @@ removeTatwil('3 ـ وشريط');
 
 Removes URLs from the text.
 
-#### Example:
+#### Example
 
 ```javascript
 removeUrls('Visit https://example.com');
@@ -664,7 +666,7 @@ removeUrls('Visit https://example.com');
 
 Replaces 'alif maqsurah' (ى) with 'ya' (ي).
 
-#### Example:
+#### Example
 
 ```javascript
 replaceAlifMaqsurah('رؤيى');
@@ -677,7 +679,7 @@ replaceAlifMaqsurah('رؤيى');
 
 Replaces double parentheses with single arrow quotation marks. Converts `((text))` format to `«text»` format, handling optional spaces inside the brackets.
 
-#### Example:
+#### Example
 
 ```javascript
 replaceDoubleBracketsWithArrows('((text))');
@@ -693,7 +695,7 @@ replaceDoubleBracketsWithArrows('(( spaced text ))');
 
 Replaces English punctuation marks (e.g., ? and ;) with their Arabic equivalents.
 
-#### Example:
+#### Example
 
 ```javascript
 replaceEnglishPunctuationWithArabic('This; and, that?');
@@ -706,7 +708,7 @@ replaceEnglishPunctuationWithArabic('This; and, that?');
 
 Replaces consecutive line breaks and whitespace characters with a single space.
 
-#### Example:
+#### Example
 
 ```javascript
 replaceLineBreaksWithSpaces('a\nb');
@@ -719,7 +721,7 @@ replaceLineBreaksWithSpaces('a\nb');
 
 Replaces common salutations like "sallahu alayhi wasallam" with "ﷺ". Handles variations like 'peace and blessings be upon him'.
 
-#### Example:
+#### Example
 
 ```javascript
 replaceSalutationsWithSymbol('Then Muḥammad (sallahu alayhi wasallam)');
@@ -732,7 +734,7 @@ replaceSalutationsWithSymbol('Then Muḥammad (sallahu alayhi wasallam)');
 
 Replaces 'ta marbutah' (ة) with 'ha' (ه).
 
-#### Example:
+#### Example
 
 ```javascript
 replaceTaMarbutahWithHa('مدرسة');
@@ -745,7 +747,7 @@ replaceTaMarbutahWithHa('مدرسة');
 
 Splits a string by spaces but keeps quoted substrings intact. Substrings enclosed in double quotes are treated as a single part.
 
-#### Example:
+#### Example
 
 ```javascript
 splitByQuotes('"This is" "a part of the" "string and"');
@@ -756,7 +758,7 @@ splitByQuotes('"This is" "a part of the" "string and"');
 
 Removes all numeric digits from the text.
 
-#### Example:
+#### Example
 
 ```javascript
 stripAllDigits('abc123');
@@ -769,7 +771,7 @@ stripAllDigits('abc123');
 
 Removes Arabic diacritics (tashkeel) and the elongation character (ـ).
 
-#### Example:
+#### Example
 
 ```javascript
 stripDiacritics('مُحَمَّدٌ');
@@ -782,7 +784,7 @@ stripDiacritics('مُحَمَّدٌ');
 
 Removes English letters and symbols from the text.
 
-#### Example:
+#### Example
 
 ```javascript
 stripEnglishCharactersAndSymbols('أحب & لنفسي');
@@ -795,7 +797,7 @@ stripEnglishCharactersAndSymbols('أحب & لنفسي');
 
 Removes zero-width characters like ZWJ and other invisible characters.
 
-#### Example:
+#### Example
 
 ```javascript
 stripZeroWidthCharacters('يَخْلُوَ ‏.');
@@ -808,7 +810,7 @@ stripZeroWidthCharacters('يَخْلُوَ ‏.');
 
 Converts a string to title case (first letter of each word capitalized).
 
-#### Example:
+#### Example
 
 ```javascript
 toTitleCase('hello world');
@@ -824,7 +826,7 @@ toTitleCase('the quick brown fox');
 
 Truncates a string to a specified length, adding an ellipsis if truncated.
 
-#### Example:
+#### Example
 
 ```javascript
 truncate('The quick brown fox jumps over the lazy dog', 20);
@@ -840,7 +842,7 @@ truncate('Short text', 50);
 
 Truncates a string from the middle, preserving both the beginning and end portions.
 
-#### Example:
+#### Example
 
 ```javascript
 truncateMiddle('The quick brown fox jumps right over the lazy dog', 20);
@@ -859,7 +861,7 @@ truncateMiddle('Short text', 50);
 
 Unescapes backslash-escaped spaces and trims whitespace from both ends. Commonly used to clean file paths that have been escaped when pasted into terminals.
 
-#### Example:
+#### Example
 
 ```javascript
 unescapeSpaces('My\\ Folder\\ Name');
