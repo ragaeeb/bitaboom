@@ -5,7 +5,7 @@
     "author": "Ragaeeb Haq",
     "license": "MIT",
     "private": false,
-    "main": "dist/main.js",
+    "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "source": "src/index.ts",
     "type": "module",
@@ -22,8 +22,8 @@
         "node": ">=22.0.0"
     },
     "files": [
-        "dist/main.js",
-        "dist/main.js.map",
+        "dist/index.js",
+        "dist/index.js.map",
         "dist/*.d.ts"
     ],
     "scripts": {
