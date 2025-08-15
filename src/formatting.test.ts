@@ -15,9 +15,14 @@ import {
     condenseUnderscores,
     doubleToSingleBrackets,
     ensureSpaceBeforeBrackets,
+    ensureSpaceBeforeQuotes,
+    fixBracketTypos,
+    fixCurlyBraces,
+    fixMismatchedQuotationMarks,
     formatStringBySentence,
     hasWordInSingleLine,
     insertLineBreaksAfterPunctuation,
+    isAllUppercase,
     isOnlyPunctuation,
     normalizeSlashInReferences,
     normalizeSpaces,
@@ -27,10 +32,181 @@ import {
     removeSpaceInsideBrackets,
     replaceDoubleBracketsWithArrows,
     stripStyling,
+    toTitleCase,
     trimSpaceInsideQuotes,
 } from './formatting';
 
 describe('formatting', () => {
+    describe('ensureSpaceBeforeBrackets', () => {
+        it('should add space before brackets when missing', () => {
+            expect(ensureSpaceBeforeBrackets('text(note)')).toEqual('text (note)');
+        });
+
+        it('should preserve existing single space before brackets', () => {
+            expect(ensureSpaceBeforeBrackets('text (note)')).toEqual('text (note)');
+        });
+
+        it('should normalize multiple spaces to single space before brackets', () => {
+            expect(ensureSpaceBeforeBrackets('text   (note)')).toEqual('text (note)');
+        });
+
+        it('should handle multiple bracket pairs in the same text', () => {
+            expect(ensureSpaceBeforeBrackets('first(one)second(two)')).toEqual('first (one)second (two)');
+        });
+
+        it('should handle mixed spacing scenarios', () => {
+            expect(ensureSpaceBeforeBrackets('good (spaced)bad(nospace)multiple   (spaces)')).toEqual(
+                'good (spaced)bad (nospace)multiple (spaces)',
+            );
+        });
+
+        it('should work with Arabic text', () => {
+            expect(ensureSpaceBeforeBrackets('النص(ملاحظة)')).toEqual('النص (ملاحظة)');
+        });
+
+        it('should work with numbers', () => {
+            expect(ensureSpaceBeforeBrackets('123(note)')).toEqual('123 (note)');
+        });
+
+        it('should handle empty brackets', () => {
+            expect(ensureSpaceBeforeBrackets('text()')).toEqual('text ()');
+        });
+
+        it('should handle brackets with special characters inside', () => {
+            expect(ensureSpaceBeforeBrackets('text(note: 123!@#)')).toEqual('text (note: 123!@#)');
+        });
+
+        it('should not affect brackets at the start of text', () => {
+            expect(ensureSpaceBeforeBrackets('(note) text')).toEqual('(note) text');
+        });
+
+        it('should not affect brackets preceded by whitespace', () => {
+            expect(ensureSpaceBeforeBrackets('text\n(note)')).toEqual('text\n(note)');
+            expect(ensureSpaceBeforeBrackets('text\t(note)')).toEqual('text\t(note)');
+        });
+
+        it('should handle nested content with commas and periods', () => {
+            expect(ensureSpaceBeforeBrackets('author(Smith, J. et al.)')).toEqual('author (Smith, J. et al.)');
+        });
+
+        it('should handle brackets with multilingual content', () => {
+            expect(ensureSpaceBeforeBrackets('word(English and عربي)')).toEqual('word (English and عربي)');
+        });
+
+        it('should handle text with no brackets', () => {
+            expect(ensureSpaceBeforeBrackets('regular text without brackets')).toEqual('regular text without brackets');
+        });
+
+        it('should handle empty string', () => {
+            expect(ensureSpaceBeforeBrackets('')).toEqual('');
+        });
+
+        it('should handle only brackets', () => {
+            expect(ensureSpaceBeforeBrackets('()')).toEqual('()');
+        });
+
+        it('should handle multiple consecutive bracket pairs', () => {
+            expect(ensureSpaceBeforeBrackets('text(first)(second)')).toEqual('text (first)(second)');
+        });
+
+        it('should preserve brackets that are part of larger expressions', () => {
+            expect(ensureSpaceBeforeBrackets('formula(a+b)(c+d)')).toEqual('formula (a+b)(c+d)');
+        });
+    });
+
+    describe('ensureSpaceBeforeQuotes', () => {
+        it('adds space before quotes when missing', () => {
+            expect(ensureSpaceBeforeQuotes('word«quote»')).toBe('word «quote»');
+            expect(ensureSpaceBeforeQuotes('text«مرحبا»')).toBe('text «مرحبا»');
+        });
+
+        it('preserves single space before quotes', () => {
+            expect(ensureSpaceBeforeQuotes('word «quote»')).toBe('word «quote»');
+        });
+
+        it('reduces multiple spaces to one', () => {
+            expect(ensureSpaceBeforeQuotes('word  «quote»')).toBe('word «quote»');
+            expect(ensureSpaceBeforeQuotes('word   «quote»')).toBe('word «quote»');
+            expect(ensureSpaceBeforeQuotes('word     «quote»')).toBe('word «quote»');
+        });
+
+        it('handles multiple quotes in text', () => {
+            expect(ensureSpaceBeforeQuotes('word«first»and«second»')).toBe('word «first»and «second»');
+            expect(ensureSpaceBeforeQuotes('word  «first» and  «second»')).toBe('word «first» and «second»');
+        });
+
+        it('handles empty string', () => {
+            expect(ensureSpaceBeforeQuotes('')).toBe('');
+        });
+
+        it('handles text without quotes', () => {
+            const plain = 'This has no quotes';
+            expect(ensureSpaceBeforeQuotes(plain)).toBe(plain);
+        });
+
+        it('handles quotes at start of text', () => {
+            expect(ensureSpaceBeforeQuotes('«quote» at start')).toBe('«quote» at start');
+        });
+
+        it('handles Arabic content in quotes', () => {
+            expect(ensureSpaceBeforeQuotes('كلمة«نص عربي»')).toBe('كلمة «نص عربي»');
+        });
+    });
+
+    describe('fixMismatchedQuotationMarks', () => {
+        it('fixes « content ) to « content »', () => {
+            expect(fixMismatchedQuotationMarks('«hello world)')).toBe('«hello world»');
+            expect(fixMismatchedQuotationMarks('«مرحبا بكم)')).toBe('«مرحبا بكم»');
+        });
+
+        it('fixes ( content » to « content »', () => {
+            expect(fixMismatchedQuotationMarks('(hello world»')).toBe('«hello world»');
+            expect(fixMismatchedQuotationMarks('(مرحبا بكم»')).toBe('«مرحبا بكم»');
+        });
+
+        it('fixes unclosed « at end', () => {
+            expect(fixMismatchedQuotationMarks('«hello world')).toBe('«hello world»');
+            expect(fixMismatchedQuotationMarks('«مرحبا بكم')).toBe('«مرحبا بكم»');
+            expect(fixMismatchedQuotationMarks('«hello world   ')).toBe('«hello world   »');
+        });
+
+        it('handles multiple mismatched quotes in one text', () => {
+            expect(fixMismatchedQuotationMarks('«first) and (second»')).toBe('«first» and «second»');
+        });
+
+        it('preserves correctly formatted quotes', () => {
+            expect(fixMismatchedQuotationMarks('«properly formatted»')).toBe('«properly formatted»');
+        });
+
+        it('handles empty string', () => {
+            expect(fixMismatchedQuotationMarks('')).toBe('');
+        });
+
+        it('handles text without quotes', () => {
+            const plain = 'This has no quotes';
+            expect(fixMismatchedQuotationMarks(plain)).toBe(plain);
+        });
+
+        it('handles nested content with quotes inside', () => {
+            expect(fixMismatchedQuotationMarks('«he said "hello")')).toBe('«he said "hello"»');
+        });
+
+        it('should replace with the arrow brackets', () => {
+            const actual = fixMismatchedQuotationMarks('يقول: « الهيثم بن عدي كوفي ليس بثقة، كان يكذب ) (٢).');
+            expect(actual).toEqual('يقول: « الهيثم بن عدي كوفي ليس بثقة، كان يكذب » (٢).');
+        });
+
+        it('should replace with the arrow brackets with the footnote', () => {
+            const actual = fixMismatchedQuotationMarks('«كذَّاب)(٣).');
+            expect(actual).toEqual('«كذَّاب»(٣).');
+        });
+
+        it('should replace with the reversed arrow brackets', () => {
+            const actual = fixMismatchedQuotationMarks('وقال ( يدلسها »(٥).');
+            expect(actual).toEqual('وقال « يدلسها »(٥).');
+        });
+    });
+
     describe('insertLineBreaksAfterPunctuation', () => {
         it('should add a new line after each period', () => {
             const input = 'الحمد لله رب العالمين. صلى الله وسلم على نبينا محمد.';
@@ -140,83 +316,6 @@ describe('formatting', () => {
 
         it('should handle text with no punctuation', () => {
             expect(removeRedundantPunctuation('مرحبا بك')).toEqual('مرحبا بك');
-        });
-    });
-
-    describe('ensureSpaceBeforeBrackets', () => {
-        it('should add space before brackets when missing', () => {
-            expect(ensureSpaceBeforeBrackets('text(note)')).toEqual('text (note)');
-        });
-
-        it('should preserve existing single space before brackets', () => {
-            expect(ensureSpaceBeforeBrackets('text (note)')).toEqual('text (note)');
-        });
-
-        it('should normalize multiple spaces to single space before brackets', () => {
-            expect(ensureSpaceBeforeBrackets('text   (note)')).toEqual('text (note)');
-        });
-
-        it('should handle multiple bracket pairs in the same text', () => {
-            expect(ensureSpaceBeforeBrackets('first(one)second(two)')).toEqual('first (one)second (two)');
-        });
-
-        it('should handle mixed spacing scenarios', () => {
-            expect(ensureSpaceBeforeBrackets('good (spaced)bad(nospace)multiple   (spaces)')).toEqual(
-                'good (spaced)bad (nospace)multiple (spaces)',
-            );
-        });
-
-        it('should work with Arabic text', () => {
-            expect(ensureSpaceBeforeBrackets('النص(ملاحظة)')).toEqual('النص (ملاحظة)');
-        });
-
-        it('should work with numbers', () => {
-            expect(ensureSpaceBeforeBrackets('123(note)')).toEqual('123 (note)');
-        });
-
-        it('should handle empty brackets', () => {
-            expect(ensureSpaceBeforeBrackets('text()')).toEqual('text ()');
-        });
-
-        it('should handle brackets with special characters inside', () => {
-            expect(ensureSpaceBeforeBrackets('text(note: 123!@#)')).toEqual('text (note: 123!@#)');
-        });
-
-        it('should not affect brackets at the start of text', () => {
-            expect(ensureSpaceBeforeBrackets('(note) text')).toEqual('(note) text');
-        });
-
-        it('should not affect brackets preceded by whitespace', () => {
-            expect(ensureSpaceBeforeBrackets('text\n(note)')).toEqual('text\n(note)');
-            expect(ensureSpaceBeforeBrackets('text\t(note)')).toEqual('text\t(note)');
-        });
-
-        it('should handle nested content with commas and periods', () => {
-            expect(ensureSpaceBeforeBrackets('author(Smith, J. et al.)')).toEqual('author (Smith, J. et al.)');
-        });
-
-        it('should handle brackets with multilingual content', () => {
-            expect(ensureSpaceBeforeBrackets('word(English and عربي)')).toEqual('word (English and عربي)');
-        });
-
-        it('should handle text with no brackets', () => {
-            expect(ensureSpaceBeforeBrackets('regular text without brackets')).toEqual('regular text without brackets');
-        });
-
-        it('should handle empty string', () => {
-            expect(ensureSpaceBeforeBrackets('')).toEqual('');
-        });
-
-        it('should handle only brackets', () => {
-            expect(ensureSpaceBeforeBrackets('()')).toEqual('()');
-        });
-
-        it('should handle multiple consecutive bracket pairs', () => {
-            expect(ensureSpaceBeforeBrackets('text(first)(second)')).toEqual('text (first)(second)');
-        });
-
-        it('should preserve brackets that are part of larger expressions', () => {
-            expect(ensureSpaceBeforeBrackets('formula(a+b)(c+d)')).toEqual('formula (a+b)(c+d)');
         });
     });
 
@@ -507,14 +606,164 @@ describe('formatting', () => {
         });
     });
 
-    describe('replaceDoubleBracketsWithArrows', () => {
-        it('should reduce the brackets', () => {
-            expect(replaceDoubleBracketsWithArrows('((text)) [[array]]')).toEqual('«text» [[array]]');
+    describe('fixBracketTypos', () => {
+        it('fixes (« pattern to «', () => {
+            expect(fixBracketTypos('(«hello»')).toBe('«hello»');
+            expect(fixBracketTypos('(«مرحبا»')).toBe('«مرحبا»');
+            expect(fixBracketTypos('text («quote» more')).toBe('text «quote» more');
         });
 
-        it('should handle string with no double brackets', () => {
-            const str = 'الحمد لله رب العالمين';
-            expect(replaceDoubleBracketsWithArrows(str)).toEqual(str);
+        it('fixes ( ( pattern to «', () => {
+            expect(fixBracketTypos('( (hello')).toBe('«hello');
+            expect(fixBracketTypos('text ( (content')).toBe('text «content');
+        });
+
+        it('fixes ») pattern to »', () => {
+            expect(fixBracketTypos('«hello»)')).toBe('«hello»');
+            expect(fixBracketTypos('«مرحبا»)')).toBe('«مرحبا»');
+            expect(fixBracketTypos('text «quote») more')).toBe('text «quote» more');
+        });
+
+        it('fixes ) ) pattern to »', () => {
+            expect(fixBracketTypos('hello) )')).toBe('hello»');
+            expect(fixBracketTypos('content) ) text')).toBe('content» text');
+        });
+
+        it('fixes )digit) pattern to (digit)', () => {
+            expect(fixBracketTypos(')123)')).toBe('(123)');
+            expect(fixBracketTypos(')456)')).toBe('(456)');
+            expect(fixBracketTypos('text )789) more')).toBe('text (789) more');
+        });
+
+        it('fixes )digit( pattern to (digit)', () => {
+            expect(fixBracketTypos(')123(')).toBe('(123)');
+            expect(fixBracketTypos(')456(')).toBe('(456)');
+            expect(fixBracketTypos('text )789( more')).toBe('text (789) more');
+        });
+
+        it('handles Arabic digits', () => {
+            // Arabic-Indic digits (٠-٩)
+            expect(fixBracketTypos(')١٢٣)')).toBe('(١٢٣)');
+            expect(fixBracketTypos(')٤٥٦(')).toBe('(٤٥٦)');
+            expect(fixBracketTypos('text )٧٨٩) more')).toBe('text (٧٨٩) more');
+            expect(fixBracketTypos('text )٠١٢( more')).toBe('text (٠١٢) more');
+        });
+
+        it('handles mixed English and Arabic digits', () => {
+            expect(fixBracketTypos(')1٢3)')).toBe('(1٢3)');
+            expect(fixBracketTypos(')٤5٦(')).toBe('(٤5٦)');
+        });
+
+        it('handles multiple fixes in one text', () => {
+            expect(fixBracketTypos('(«hello») and )123) and ( (world) )')).toBe('«hello» and (123) and «world»');
+            expect(fixBracketTypos('(«first») )456( «second»)')).toBe('«first» (456) «second»');
+        });
+
+        it('preserves correctly formatted text', () => {
+            expect(fixBracketTypos('«properly formatted»')).toBe('«properly formatted»');
+            expect(fixBracketTypos('(123) normal brackets')).toBe('(123) normal brackets');
+            expect(fixBracketTypos('normal (text) here')).toBe('normal (text) here');
+        });
+
+        it('handles empty string', () => {
+            expect(fixBracketTypos('')).toBe('');
+        });
+
+        it('handles text without brackets', () => {
+            const plain = 'This has no brackets or quotes';
+            expect(fixBracketTypos(plain)).toBe(plain);
+        });
+
+        it('should fix the brackets', () => {
+            const actual = fixBracketTypos(')١)');
+            expect(actual).toEqual('(١)');
+        });
+
+        it('should fix the flipped brackets', () => {
+            const actual = fixBracketTypos(')١(');
+            expect(actual).toEqual('(١)');
+        });
+
+        it('handles single digits', () => {
+            expect(fixBracketTypos(')5)')).toBe('(5)');
+            expect(fixBracketTypos(')9(')).toBe('(9)');
+            expect(fixBracketTypos(')٧)')).toBe('(٧)');
+            expect(fixBracketTypos(')٢(')).toBe('(٢)');
+        });
+
+        it('handles multi-digit numbers', () => {
+            expect(fixBracketTypos(')12345)')).toBe('(12345)');
+            expect(fixBracketTypos(')98765(')).toBe('(98765)');
+            expect(fixBracketTypos(')١٢٣٤٥)')).toBe('(١٢٣٤٥)');
+            expect(fixBracketTypos(')٩٨٧٦٥(')).toBe('(٩٨٧٦٥)');
+        });
+
+        it('does not affect other bracket patterns', () => {
+            expect(fixBracketTypos('[square brackets]')).toBe('[square brackets]');
+            expect(fixBracketTypos('{curly braces}')).toBe('{curly braces}');
+            expect(fixBracketTypos('(normal) brackets')).toBe('(normal) brackets');
+        });
+
+        it('handles edge cases with spaces', () => {
+            expect(fixBracketTypos('( ( content')).toBe('« content');
+            expect(fixBracketTypos('content ) )')).toBe('content »');
+        });
+    });
+
+    describe('fixCurlyBraces', () => {
+        it('fixes ( content } to { content }', () => {
+            expect(fixCurlyBraces('(hello world}')).toBe('{hello world}');
+            expect(fixCurlyBraces('(content here}')).toBe('{content here}');
+            expect(fixCurlyBraces('(مرحبا بكم}')).toBe('{مرحبا بكم}');
+        });
+
+        it('fixes { content ) to { content }', () => {
+            expect(fixCurlyBraces('{hello world)')).toBe('{hello world}');
+            expect(fixCurlyBraces('{content here)')).toBe('{content here}');
+            expect(fixCurlyBraces('{مرحبا بكم)')).toBe('{مرحبا بكم}');
+        });
+
+        it('handles multiple mismatched braces in one text', () => {
+            expect(fixCurlyBraces('(first} and {second)')).toBe('{first} and {second}');
+            expect(fixCurlyBraces('(one} (two} {three) {four)')).toBe('{one} {two} {three} {four}');
+        });
+
+        it('preserves correctly formatted braces', () => {
+            expect(fixCurlyBraces('{properly formatted}')).toBe('{properly formatted}');
+            expect(fixCurlyBraces('{first} and {second}')).toBe('{first} and {second}');
+        });
+
+        it('handles empty string', () => {
+            expect(fixCurlyBraces('')).toBe('');
+        });
+
+        it('handles text without braces', () => {
+            const plain = 'This has no braces';
+            expect(fixCurlyBraces(plain)).toBe(plain);
+        });
+
+        it('handles content with other brackets/parentheses that should not be affected', () => {
+            expect(fixCurlyBraces('(normal parens) and [brackets]')).toBe('(normal parens) and [brackets]');
+        });
+
+        it('should fix the curly brackets', () => {
+            const actual = fixCurlyBraces('( إِيَّاه}(٣)، وقال: {تَذَكَّرُونَ) (٤).');
+            expect(actual).toEqual('{ إِيَّاه}(٣)، وقال: {تَذَكَّرُونَ} (٤).');
+        });
+
+        it('handles mixed content with numbers and special characters', () => {
+            expect(fixCurlyBraces('(123 + 456 = 789}')).toBe('{123 + 456 = 789}');
+            expect(fixCurlyBraces('{hello@email.com)')).toBe('{hello@email.com}');
+        });
+
+        it('handles content with spaces', () => {
+            expect(fixCurlyBraces('(  spaced content  }')).toBe('{  spaced content  }');
+            expect(fixCurlyBraces('{  spaced content  )')).toBe('{  spaced content  }');
+        });
+
+        it('handles single character content', () => {
+            expect(fixCurlyBraces('(a}')).toBe('{a}');
+            expect(fixCurlyBraces('{b)')).toBe('{b}');
         });
     });
 
@@ -560,6 +809,59 @@ describe('formatting', () => {
             const lines = ['(1) النص الأول (۱) حديث صحيح (2) النص الثاني (۲).'];
             const actual = formatStringBySentence(lines.join('\n'));
             expect(actual.split('\n')).toEqual(lines);
+        });
+    });
+
+    describe('isAllUppercase', () => {
+        it('returns true for all uppercase text', () => {
+            expect(isAllUppercase('HELLO')).toBe(true);
+            expect(isAllUppercase('HELLO WORLD')).toBe(true);
+            expect(isAllUppercase('TEST123')).toBe(true);
+        });
+
+        it('returns false for mixed case text', () => {
+            expect(isAllUppercase('Hello')).toBe(false);
+            expect(isAllUppercase('HELLO world')).toBe(false);
+            expect(isAllUppercase('HeLLo')).toBe(false);
+        });
+
+        it('returns false for all lowercase text', () => {
+            expect(isAllUppercase('hello')).toBe(false);
+            expect(isAllUppercase('hello world')).toBe(false);
+        });
+
+        it('returns false for empty string', () => {
+            expect(isAllUppercase('')).toBe(false);
+        });
+
+        it('returns false for text with only numbers', () => {
+            expect(isAllUppercase('123')).toBe(false);
+            expect(isAllUppercase('456789')).toBe(false);
+        });
+
+        it('returns false for text with only punctuation', () => {
+            expect(isAllUppercase('!@#$%')).toBe(false);
+            expect(isAllUppercase('.,;:')).toBe(false);
+        });
+
+        it('returns false for text with only spaces', () => {
+            expect(isAllUppercase('   ')).toBe(false);
+            expect(isAllUppercase(' \t\n ')).toBe(false);
+        });
+
+        it('returns true for uppercase with numbers and punctuation', () => {
+            expect(isAllUppercase('HELLO 123!')).toBe(true);
+            expect(isAllUppercase('TEST@EMAIL.COM')).toBe(true);
+        });
+
+        it('handles Unicode letters', () => {
+            expect(isAllUppercase('ÁÉÍÓÚ')).toBe(true);
+            expect(isAllUppercase('áéíóú')).toBe(false);
+            expect(isAllUppercase('ÁéÍóÚ')).toBe(false);
+        });
+
+        it('returns false for mixed content without letters', () => {
+            expect(isAllUppercase('123 !@#')).toBe(false);
         });
     });
 
@@ -655,6 +957,17 @@ describe('formatting', () => {
         });
     });
 
+    describe('replaceDoubleBracketsWithArrows', () => {
+        it('should reduce the brackets', () => {
+            expect(replaceDoubleBracketsWithArrows('((text)) [[array]]')).toEqual('«text» [[array]]');
+        });
+
+        it('should handle string with no double brackets', () => {
+            const str = 'الحمد لله رب العالمين';
+            expect(replaceDoubleBracketsWithArrows(str)).toEqual(str);
+        });
+    });
+
     describe('trimSpaceInsideQuotes', () => {
         it('should trim the space inside the quotes', () => {
             expect(trimSpaceInsideQuotes('“ Fasting is during the winter. ”')).toEqual(
@@ -668,6 +981,44 @@ describe('formatting', () => {
             expect(stripStyling('𝗢𝗳 𝗮𝗹𝗹 𝘀𝘁𝗶𝗽𝘂𝗹𝗮𝘁𝗶𝗼𝗻𝘀 𝘢𝗻𝗱 𝘪𝘵𝘢𝘭𝘪𝘤𝘪𝘻𝘦𝘥 𝘁𝗲𝘅𝘁')).toEqual(
                 'Of all stipulations and italicized text',
             );
+        });
+    });
+
+    describe('toTitleCase', () => {
+        it('converts single word to title case', () => {
+            expect(toTitleCase('hello')).toBe('Hello');
+            expect(toTitleCase('WORLD')).toBe('World');
+            expect(toTitleCase('tEsT')).toBe('Test');
+        });
+
+        it('converts multiple words to title case', () => {
+            expect(toTitleCase('hello world')).toBe('Hello World');
+            expect(toTitleCase('the quick brown fox')).toBe('The Quick Brown Fox');
+        });
+
+        it('handles mixed case input', () => {
+            expect(toTitleCase('hELLo WoRLD')).toBe('Hello World');
+            expect(toTitleCase('jAvAsCrIpT iS fUn')).toBe('Javascript Is Fun');
+        });
+
+        it('handles empty string', () => {
+            expect(toTitleCase('')).toBe('');
+        });
+
+        it('handles single character', () => {
+            expect(toTitleCase('a')).toBe('A');
+        });
+
+        it('handles multiple spaces', () => {
+            expect(toTitleCase('hello  world')).toBe('Hello  World');
+        });
+
+        it('handles leading and trailing spaces', () => {
+            expect(toTitleCase(' hello world ')).toBe(' Hello World ');
+        });
+
+        it('handles numbers and special characters', () => {
+            expect(toTitleCase('hello123 world!')).toBe('Hello123 World!');
         });
     });
 });

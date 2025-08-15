@@ -191,13 +191,76 @@ export const doubleToSingleBrackets = (text: string) => {
 };
 
 /**
- * Replaces double parentheses single a single arrow variation.
- * Example: '((text))' becomes '«text»'.
- * @param {string} text - The input text to apply the rule to.
- * @returns {string} - The modified text with condensed brackets.
+ * Ensures at most 1 space exists before any word before brackets.
+ * Adds a space if there isn't one, or reduces multiple spaces to one.
+ * @param {string} text - The input text to modify
+ * @returns {string} - The modified text with proper spacing before brackets
  */
-export const replaceDoubleBracketsWithArrows = (text: string) => {
-    return text.replace(/\(\(\s?/g, '«').replace(/\s?\)\)/g, '»');
+export const ensureSpaceBeforeBrackets = (text: string) => {
+    return text.replace(/(\S) *(\([^)]*\))/g, '$1 $2');
+};
+
+/**
+ * Ensures at most 1 space exists before any word before Arabic quotation marks.
+ * Adds a space if there isn't one, or reduces multiple spaces to one.
+ * @param {string} text - The input text to modify
+ * @returns {string} - The modified text with proper spacing before Arabic quotes
+ */
+export const ensureSpaceBeforeQuotes = (text: string) => {
+    return text.replace(/(\S) *(«[^»]*»)/g, '$1 $2');
+};
+
+/**
+ * Fixes common bracket and quotation mark typos in text
+ * Corrects malformed patterns like "(«", "»)", and misplaced digits in brackets
+ * @param text - Input text that may contain bracket typos
+ * @returns Text with corrected bracket and quotation mark combinations
+ */
+export const fixBracketTypos = (text: string) => {
+    return (
+        text
+            .replace(/\(«|\( \(/g, '«')
+            .replace(/»\)|\) \)/g, '»')
+            // Fix ")digit)" pattern to "(digit)"
+            .replace(/\)([0-9\u0660-\u0669]+)\)/g, '($1)')
+            // Fix ")digit(" pattern to "(digit)"
+            .replace(/\)([0-9\u0660-\u0669]+)\(/g, '($1)')
+    );
+};
+
+/**
+ * Fixes mismatched curly braces by converting incorrect bracket/brace combinations
+ * to proper curly braces { }
+ * @param text - Input text that may contain mismatched curly braces
+ * @returns Text with corrected curly brace pairs
+ */
+export const fixCurlyBraces = (text: string) => {
+    // Process each mismatch type separately to avoid interference
+    let result = text;
+
+    // Fix ( content } to { content }
+    result = result.replace(/\(([^(){}]+)\}/g, '{$1}');
+
+    // Fix { content ) to { content }
+    return result.replace(/\{([^(){}]+)\)/g, '{$1}');
+};
+
+/**
+ * Fixes mismatched quotation marks in Arabic text by converting various
+ * incorrect bracket/quote combinations to proper Arabic quotation marks (« »)
+ * @param text - Input text that may contain mismatched quotation marks
+ * @returns Text with corrected Arabic quotation marks
+ */
+export const fixMismatchedQuotationMarks = (text: string) => {
+    return (
+        text
+            // Matches mismatched quotation marks: « followed by content and closed with )
+            .replace(/«([^»)]+)\)/g, '«$1»')
+            // Fix reverse mismatched ( content » to « content »
+            .replace(/\(([^()]+)»/g, '«$1»')
+            // Matches any unclosed « quotation marks at end of content
+            .replace(/«([^»]+)(?=\s*$|$)/g, '«$1»')
+    );
 };
 
 /**
@@ -243,6 +306,24 @@ export const formatStringBySentence = (input: string) => {
 };
 
 /**
+ * Detects if text is entirely in uppercase letters
+ * @param text - The text to check
+ * @returns true if all alphabetic characters are uppercase, false otherwise
+ */
+export const isAllUppercase = (text: string) => {
+    // Remove non-letter characters (including numbers, punctuation, spaces)
+    // \p{L} matches any Unicode letter character
+    const lettersOnly = text.replace(/[^\p{L}]/gu, '');
+
+    // If there are no letter characters, return false
+    if (lettersOnly.length === 0) {
+        return false;
+    }
+
+    return lettersOnly === lettersOnly.toUpperCase();
+};
+
+/**
  * Removes unnecessary spaces around slashes in references.
  * Example: '127 / 11' becomes '127/11'.
  * @param {string} text - The input text containing references.
@@ -260,16 +341,6 @@ export const normalizeSlashInReferences = (text: string) => {
  */
 export const normalizeSpaces = (text: string) => {
     return text.replace(/[ \t]+/g, ' ');
-};
-
-/**
- * Ensures at most 1 space exists before any word before brackets.
- * Adds a space if there isn't one, or reduces multiple spaces to one.
- * @param {string} text - The input text to modify
- * @returns {string} - The modified text with proper spacing before brackets
- */
-export const ensureSpaceBeforeBrackets = (text: string) => {
-    return text.replace(/(\S) *(\([^)]*\))/g, '$1 $2');
 };
 
 /**
@@ -300,6 +371,16 @@ export const removeRedundantPunctuation = (text: string) => {
  */
 export const removeSpaceInsideBrackets = (text: string) => {
     return text.replace(/([[(])\s*(.*?)\s*([\])])/g, '$1$2$3');
+};
+
+/**
+ * Replaces double parentheses single a single arrow variation.
+ * Example: '((text))' becomes '«text»'.
+ * @param {string} text - The input text to apply the rule to.
+ * @returns {string} - The modified text with condensed brackets.
+ */
+export const replaceDoubleBracketsWithArrows = (text: string) => {
+    return text.replace(/\(\(\s?/g, '«').replace(/\s?\)\)/g, '»');
 };
 
 /**
@@ -394,6 +475,19 @@ export const stripItalicsStyling = (text: string) => {
  */
 export const stripStyling = (text: string) => {
     return stripItalicsStyling(stripBoldStyling(text));
+};
+
+/**
+ * Converts a string to title case (first letter of each word capitalized)
+ * @param str - The input string to convert
+ * @returns String with each word's first letter capitalized
+ */
+export const toTitleCase = (str: string) => {
+    return str
+        .toLowerCase()
+        .split(' ')
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
 };
 
 /**

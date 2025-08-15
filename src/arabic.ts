@@ -20,6 +20,28 @@ export const convertUrduSymbolsToArabic = (text: string) => {
 };
 
 /**
+ * Calculates the proportion of Arabic characters in text relative to total non-whitespace, non-digit characters.
+ * Digits (ASCII and Arabic-Indic variants) are excluded from both numerator and denominator.
+ * @param text - The input text to analyze
+ * @returns A decimal between 0-1 representing the Arabic character ratio (0 = no Arabic, 1 = all Arabic)
+ */
+export const getArabicScore = (text: string) => {
+    if (!text) {
+        return 0;
+    }
+    // Arabic letters (letters/ranges only)
+    const arabicLettersPattern = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/g;
+    // ASCII digits + Arabic-Indic digits + Extended Arabic-Indic digits
+    const allDigitPattern = /[0-9\u0660-\u0669\u06F0-\u06F9]/g;
+    // Counted characters exclude whitespace and all listed digits
+    const countedCharsPattern = /[^\s0-9\u0660-\u0669\u06F0-\u06F9]/g;
+    const cleaned = text.replace(allDigitPattern, '');
+    const arabicMatches = cleaned.match(arabicLettersPattern) || [];
+    const totalMatches = cleaned.match(countedCharsPattern) || [];
+    return totalMatches.length === 0 ? 0 : arabicMatches.length / totalMatches.length;
+};
+
+/**
  * Fixes the trailing "و" (wow) in phrases such as "عليكم و رحمة" to "عليكم ورحمة".
  * This function attempts to correct phrases where "و" appears unnecessarily, particularly in greetings.
  * Example: 'السلام عليكم و رحمة' will be changed to 'السلام عليكم ورحمة'.
