@@ -82,7 +82,7 @@ Turns regular double quotes into smart quotes and fixes any incorrect starting q
 
 ```javascript
 applySmartQuotes('The "quick brown" fox');
-// Output: 'The “quick brown” fox'
+// Output: 'The "quick brown" fox'
 ```
 
 ---
@@ -192,6 +192,22 @@ ensureSpaceBeforeBrackets('text   (note)');
 
 ---
 
+### `ensureSpaceBeforeQuotes`
+
+Ensures at most 1 space exists before any word before Arabic quotation marks. Adds a space if there isn't one, or reduces multiple spaces to one.
+
+#### Example:
+
+```javascript
+ensureSpaceBeforeQuotes('text«quote»');
+// Output: 'text «quote»'
+
+ensureSpaceBeforeQuotes('text   «quote»');
+// Output: 'text «quote»'
+```
+
+---
+
 ### `extractInitials`
 
 Extracts initials from the input string, typically for names or titles.
@@ -203,6 +219,54 @@ extractInitials('Nayl al-Awtar');
 // Output: 'NA'
 ```
 
+### `fixBracketTypos`
+
+Fixes common bracket and quotation mark typos in text. Corrects malformed patterns like "(«", "»)", and misplaced digits in brackets.
+
+#### Example:
+
+```javascript
+fixBracketTypos('(«text»)');
+// Output: '«text»'
+
+fixBracketTypos(')5)');
+// Output: '(5)'
+```
+
+---
+
+### `fixCurlyBraces`
+
+Fixes mismatched curly braces by converting incorrect bracket/brace combinations to proper curly braces { }.
+
+#### Example:
+
+```javascript
+fixCurlyBraces('(content}');
+// Output: '{content}'
+
+fixCurlyBraces('{content)');
+// Output: '{content}'
+```
+
+---
+
+### `fixMismatchedQuotationMarks`
+
+Fixes mismatched quotation marks in Arabic text by converting various incorrect bracket/quote combinations to proper Arabic quotation marks (« »).
+
+#### Example:
+
+```javascript
+fixMismatchedQuotationMarks('«text)');
+// Output: '«text»'
+
+fixMismatchedQuotationMarks('(text»');
+// Output: '«text»'
+```
+
+---
+
 ### `fixTrailingWow`
 
 Corrects unnecessary trailing "و" in greetings or phrases.
@@ -212,6 +276,22 @@ Corrects unnecessary trailing "و" in greetings or phrases.
 ```javascript
 fixTrailingWow('السلام عليكم و رحمة');
 // Output: 'السلام عليكم ورحمة'
+```
+
+---
+
+### `getArabicScore`
+
+Calculates the proportion of Arabic characters in text relative to total non-whitespace characters.
+
+#### Example:
+
+```javascript
+getArabicScore('مرحبا hello');
+// Output: 0.5 (5 Arabic chars out of 10 non-whitespace chars)
+
+getArabicScore('مرحبا');
+// Output: 1.0 (100% Arabic)
 ```
 
 ---
@@ -239,6 +319,25 @@ Adds line breaks after punctuation marks such as periods, exclamation points, an
 insertLineBreaksAfterPunctuation('Text.');
 // Output: 'Text.
 '
+```
+
+---
+
+### `isAllUppercase`
+
+Detects if text is entirely in uppercase letters.
+
+#### Example:
+
+```javascript
+isAllUppercase('HELLO WORLD');
+// Output: true
+
+isAllUppercase('Hello World');
+// Output: false
+
+isAllUppercase('123');
+// Output: false (no letters)
 ```
 
 ---
@@ -285,6 +384,21 @@ isOnlyPunctuation('!?');
 
 ---
 
+### `makeDiacriticInsensitive`
+
+Creates a diacritic-insensitive regex pattern for Arabic text matching. Normalizes text, handles character equivalences (ا/آ/أ/إ, ة/ه, ى/ي), and makes each character tolerant of Arabic diacritics (Tashkeel/Harakat).
+
+#### Example:
+
+```javascript
+const pattern = makeDiacriticInsensitive('محمد');
+const regex = new RegExp(pattern, 'gi');
+regex.test('مُحَمَّد'); // true
+regex.test('محمد'); // true
+```
+
+---
+
 ### `normalizeAlifVariants`
 
 Simplifies all forms of 'alif' (أ, إ, and آ) to the basic 'ا'.
@@ -298,12 +412,12 @@ normalizeAlifVariants('أنا إلى الآفاق');
 
 ### `normalizeApostrophes`
 
-Replaces various apostrophe characters like ‛, ’, and ‘ with the standard apostrophe (').
+Replaces various apostrophe characters like ‛, ', and ' with the standard apostrophe (').
 
 #### Example:
 
 ```javascript
-normalizeApostrophes('‛ulama’ al-su‘');
+normalizeApostrophes('‛ulama' al-su'');
 // Output: "'ulama' al-su'"
 ```
 
@@ -374,6 +488,25 @@ normalize('Al-Jadwāl');
 
 ---
 
+### `parsePageRanges`
+
+Parses page input string into array of page numbers, supporting ranges and lists.
+
+#### Example:
+
+```javascript
+parsePageRanges('1-5');
+// Output: [1, 2, 3, 4, 5]
+
+parsePageRanges('1,3,5');
+// Output: [1, 3, 5]
+
+parsePageRanges('10-8');
+// Throws Error: 'Start page cannot be greater than end page'
+```
+
+---
+
 ### `removeArabicPrefixes`
 
 Strips common Arabic prefixes like 'al-', 'bi-', 'fī', 'wa-', etc., from the beginning of words.
@@ -394,8 +527,24 @@ Removes death year references like "(d. 390H)" and "[d. 100h]" from the text.
 #### Example:
 
 ```javascript
-removeDeathYear('Sufyān ibn ‘Uyaynah (d. 198h)');
-// Output: 'Sufyān ibn ‘Uyaynah'
+removeDeathYear('Sufyān ibn 'Uyaynah (d. 198h)');
+// Output: 'Sufyān ibn 'Uyaynah'
+```
+
+---
+
+### `removeMarkdownFormatting`
+
+Removes common Markdown formatting syntax from text.
+
+#### Example:
+
+```javascript
+removeMarkdownFormatting('**Bold** and *italic* text');
+// Output: 'Bold and italic text'
+
+removeMarkdownFormatting('# Header\n- List item');
+// Output: 'Header\nList item'
 ```
 
 ---
@@ -623,7 +772,7 @@ Removes Arabic diacritics (tashkeel) and the elongation character (ـ).
 #### Example:
 
 ```javascript
-stripDiacritics('مُحَمَّدٌ');
+stripDiacritics('مُحَمَّدٌ');
 // Output: 'محمد'
 ```
 
@@ -651,6 +800,22 @@ Removes zero-width characters like ZWJ and other invisible characters.
 ```javascript
 stripZeroWidthCharacters('يَخْلُوَ ‏.');
 // Output: 'يَخْلُوَ .'
+```
+
+---
+
+### `toTitleCase`
+
+Converts a string to title case (first letter of each word capitalized).
+
+#### Example:
+
+```javascript
+toTitleCase('hello world');
+// Output: 'Hello World'
+
+toTitleCase('the quick brown fox');
+// Output: 'The Quick Brown Fox'
 ```
 
 ---

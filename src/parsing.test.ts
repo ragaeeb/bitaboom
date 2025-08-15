@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { isBalanced, isJsonStructureValid, normalizeJsonSyntax, splitByQuotes } from './parsing';
+import { isBalanced, isJsonStructureValid, normalizeJsonSyntax, parsePageRanges, splitByQuotes } from './parsing';
 
 describe('parsing', () => {
     describe('normalizeJsonSyntax', () => {
@@ -209,6 +209,54 @@ describe('parsing', () => {
             it('should handle newlines and whitespace', () => {
                 expect(isBalanced('Line 1\n"Line 2" (with brackets)\nLine 3')).toBe(true);
             });
+        });
+    });
+
+    describe('parsePageRanges', () => {
+        it('should parse single page number', () => {
+            expect(parsePageRanges('5')).toEqual([5]);
+        });
+
+        it('should parse comma-separated page numbers', () => {
+            expect(parsePageRanges('1,3,5,7')).toEqual([1, 3, 5, 7]);
+        });
+
+        it('should parse page range with dash', () => {
+            expect(parsePageRanges('1-5')).toEqual([1, 2, 3, 4, 5]);
+        });
+
+        it('should parse single page range', () => {
+            expect(parsePageRanges('10-12')).toEqual([10, 11, 12]);
+        });
+
+        it('should parse range with same start and end', () => {
+            expect(parsePageRanges('7-7')).toEqual([7]);
+        });
+
+        it('should throw error when start page is greater than end page', () => {
+            expect(() => parsePageRanges('10-5')).toThrow('Start page cannot be greater than end page');
+        });
+
+        it('should handle large ranges', () => {
+            const result = parsePageRanges('98-100');
+            expect(result).toEqual([98, 99, 100]);
+            expect(result).toHaveLength(3);
+        });
+
+        it('should handle range starting from 1', () => {
+            expect(parsePageRanges('1-3')).toEqual([1, 2, 3]);
+        });
+
+        it('should parse mixed comma input as individual pages', () => {
+            expect(parsePageRanges('1,2,3')).toEqual([1, 2, 3]);
+        });
+
+        it('should handle string numbers correctly', () => {
+            expect(parsePageRanges('001,002,003')).toEqual([1, 2, 3]);
+        });
+
+        it('should handle zero in ranges', () => {
+            expect(parsePageRanges('0-2')).toEqual([0, 1, 2]);
         });
     });
 });

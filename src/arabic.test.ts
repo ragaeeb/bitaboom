@@ -5,6 +5,7 @@ import {
     cleanExtremeArabicUnderscores,
     convertUrduSymbolsToArabic,
     fixTrailingWow,
+    getArabicScore,
     normalizeAlifVariants,
     removeNonIndexSignatures,
     removeSingularCodes,
@@ -69,6 +70,75 @@ describe('arabic', () => {
             expect(fixTrailingWow('الأشاعرة لكنهما ما قصدوا مخالفة الكتاب و السنة و إنما وهموا و ظنوا')).toBe(
                 'الأشاعرة لكنهما ما قصدوا مخالفة الكتاب والسنة وإنما وهموا وظنوا',
             );
+        });
+    });
+
+    describe('getArabicScore', () => {
+        it('returns 0 for empty string', () => {
+            expect(getArabicScore('')).toBe(0);
+        });
+
+        it('returns 0 for null/undefined', () => {
+            expect(getArabicScore(null as any)).toBe(0);
+            expect(getArabicScore(undefined as any)).toBe(0);
+        });
+
+        it('returns 1 for pure Arabic text', () => {
+            expect(getArabicScore('مرحبا')).toBe(1);
+            expect(getArabicScore('السلام عليكم')).toBe(1);
+            expect(getArabicScore('العربية')).toBe(1);
+        });
+
+        it('returns 0 for pure English text', () => {
+            expect(getArabicScore('hello')).toBe(0);
+            expect(getArabicScore('hello world')).toBe(0);
+            expect(getArabicScore('English text')).toBe(0);
+        });
+
+        it('returns 0 for text with only whitespace', () => {
+            expect(getArabicScore('   ')).toBe(0);
+            expect(getArabicScore(' \t\n ')).toBe(0);
+        });
+
+        it('returns 0 for text with only numbers', () => {
+            expect(getArabicScore('123')).toBe(0);
+            expect(getArabicScore('456 789')).toBe(0);
+        });
+
+        it('calculates correct ratio for mixed Arabic/English', () => {
+            // "hello مرحبا" - 5 English + 5 Arabic = 5/10 = 0.5
+            expect(getArabicScore('hello مرحبا')).toBe(0.5);
+        });
+
+        it('ignores whitespace in ratio calculation', () => {
+            // "a   ب" should be 1 English + 1 Arabic = 1/2 = 0.5 (spaces ignored)
+            expect(getArabicScore('a   ب')).toBe(0.5);
+        });
+
+        it('ignores numbers in ratio calculation', () => {
+            // "a123ب456" should be 1 English + 1 Arabic = 1/2 = 0.5 (numbers ignored)
+            expect(getArabicScore('a123ب456')).toBe(0.5);
+        });
+
+        it('handles Arabic with numbers and spaces', () => {
+            // "مرحبا 123" should be 5 Arabic characters out of 5 total = 1.0
+            expect(getArabicScore('مرحبا 123')).toBe(1);
+        });
+
+        it('handles English with numbers and spaces', () => {
+            // "hello 123" should be 5 English characters out of 5 total = 0.0
+            expect(getArabicScore('hello 123')).toBe(0);
+        });
+
+        it('handles text with only punctuation', () => {
+            expect(getArabicScore('!@#$%')).toBe(0);
+        });
+
+        it('handles different Arabic Unicode ranges', () => {
+            // Test different Arabic character ranges
+            expect(getArabicScore('ا')).toBe(1); // Basic Arabic
+            expect(getArabicScore('ء')).toBe(1); // Arabic supplement
+            // Note: Extended ranges would need actual characters from those ranges to test
         });
     });
 
