@@ -863,6 +863,14 @@ describe('formatting', () => {
         it('returns false for mixed content without letters', () => {
             expect(isAllUppercase('123 !@#')).toBe(false);
         });
+
+        it('should work for bracketed text', () => {
+            expect(
+                isAllUppercase(
+                    '[CHAPTER: THE PRE-EMPTOR WANTED TO TAKE THE SHARE AND IT WAS IN THE HAND OF THE PURCHASER]',
+                ),
+            ).toBeTrue();
+        });
     });
 
     describe('isOnlyPunctuation', () => {
@@ -1019,6 +1027,18 @@ describe('formatting', () => {
 
         it('handles numbers and special characters', () => {
             expect(toTitleCase('hello123 world!')).toBe('Hello123 World!');
+        });
+
+        it('should work with bracketed text', () => {
+            expect(
+                toTitleCase(
+                    '[CHAPTER: THE PRE-EMPTOR WANTED TO TAKE THE SHARE AND IT WAS IN THE HAND OF THE PURCHASER]',
+                ),
+            ).toBe('[Chapter: The Pre-emptor Wanted To Take The Share And It Was In The Hand Of The Purchaser]');
+        });
+
+        it('should work with ALA-LC transliterations', () => {
+            expect(toTitleCase('BĀB: RAḤMĀN')).toBe('Bāb: Raḥmān');
         });
     });
 });
