@@ -89,6 +89,25 @@ applySmartQuotes('The "quick brown" fox');
 
 ---
 
+### `arabicNumeralToNumber`
+
+Converts Arabic-Indic numerals (٠-٩) to a JavaScript number. This function finds all Arabic-Indic digits in the input string and converts them to their corresponding Arabic (Western) digits, then parses the result as an integer.
+
+#### Example
+
+```javascript
+arabicNumeralToNumber("١٢٣");
+// Output: 123
+
+arabicNumeralToNumber("٥٠");
+// Output: 50
+
+arabicNumeralToNumber("abc١٢٣xyz");
+// Output: 123 (non-digits ignored)
+```
+
+---
+
 ### `cleanExtremeArabicUnderscores`
 
 Removes extreme Arabic underscores (ـ) from the beginning or end of lines. It does not affect Hijri dates or certain Arabic terms.
@@ -195,6 +214,19 @@ ensureSpaceBeforeQuotes('text«quote»');
 
 ensureSpaceBeforeQuotes('text   «quote»');
 // Output: 'text «quote»'
+```
+
+---
+
+### `escapeRegex`
+
+Escapes a string so it can be safely embedded into a RegExp source.
+
+#### Example
+
+```javascript
+escapeRegex('Hello [world]');
+// Output: 'Hello \\[world\\]'
 ```
 
 ---
