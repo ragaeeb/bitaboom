@@ -1,25 +1,66 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'bun:test';
 
 import {
     addSpaceBetweenArabicTextAndNumbers,
+    arabicNumeralToNumber,
     cleanExtremeArabicUnderscores,
     convertUrduSymbolsToArabic,
     fixTrailingWow,
     getArabicScore,
-    normalizeAlifVariants,
     removeNonIndexSignatures,
     removeSingularCodes,
     removeSolitaryArabicLetters,
-    removeTatwil,
-    replaceAlifMaqsurah,
     replaceEnglishPunctuationWithArabic,
-    replaceTaMarbutahWithHa,
-    stripDiacritics,
-    stripEnglishCharactersAndSymbols,
-    stripZeroWidthCharacters,
 } from './arabic';
 
 describe('arabic', () => {
+    describe('arabicNumeralToNumber', () => {
+        it('should convert single Arabic-Indic digits', () => {
+            expect(arabicNumeralToNumber('٠')).toBe(0);
+            expect(arabicNumeralToNumber('١')).toBe(1);
+            expect(arabicNumeralToNumber('٢')).toBe(2);
+            expect(arabicNumeralToNumber('٣')).toBe(3);
+            expect(arabicNumeralToNumber('٤')).toBe(4);
+            expect(arabicNumeralToNumber('٥')).toBe(5);
+            expect(arabicNumeralToNumber('٦')).toBe(6);
+            expect(arabicNumeralToNumber('٧')).toBe(7);
+            expect(arabicNumeralToNumber('٨')).toBe(8);
+            expect(arabicNumeralToNumber('٩')).toBe(9);
+        });
+
+        it('should convert multi-digit Arabic-Indic numbers', () => {
+            expect(arabicNumeralToNumber('١٠')).toBe(10);
+            expect(arabicNumeralToNumber('١٢٣')).toBe(123);
+            expect(arabicNumeralToNumber('٤٥٦٧')).toBe(4567);
+            expect(arabicNumeralToNumber('٩٨٧٦٥٤٣٢١٠')).toBe(9876543210);
+        });
+
+        it('should handle strings with leading zeros', () => {
+            expect(arabicNumeralToNumber('٠٠١')).toBe(1);
+            expect(arabicNumeralToNumber('٠٥٠')).toBe(50);
+            expect(arabicNumeralToNumber('٠٠٠')).toBe(0);
+        });
+
+        it('should handle edge cases', () => {
+            expect(arabicNumeralToNumber('٠')).toBe(0);
+            expect(arabicNumeralToNumber('   ١٢٣   ')).toBe(123); // whitespace
+        });
+
+        it('should handle very large numbers', () => {
+            const largeArabicIndic = '١٢٣٤٥٦٧٨٩٠١٢٣٤٥';
+            const expected = 123456789012345;
+            expect(arabicNumeralToNumber(largeArabicIndic)).toBe(expected);
+        });
+
+        it('should be consistent with manual conversion', () => {
+            // Manual verification of the Unicode arithmetic
+            const arabicIndic = '٩٨٧';
+            const manual = 9 * 100 + 8 * 10 + 7 * 1;
+            expect(arabicNumeralToNumber(arabicIndic)).toBe(manual);
+            expect(arabicNumeralToNumber(arabicIndic)).toBe(987);
+        });
+    });
+
     describe('cleanExtremeArabicUnderscores', () => {
         it('should not affect hijri dates', () => {
             expect(cleanExtremeArabicUnderscores('اهـ')).toBe('اهـ');
@@ -160,12 +201,6 @@ describe('arabic', () => {
         });
     });
 
-    describe('stripEnglishCharactersAndSymbols', () => {
-        it('should remove ampersand', () => {
-            expect(stripEnglishCharactersAndSymbols(`أحب & لنفسي`)).toEqual('أحب   لنفسي');
-        });
-    });
-
     describe('removeNonIndexSignatures', () => {
         it('should not remove numbers that are more than 1 digit', () => {
             expect(removeNonIndexSignatures('وهب  وقال   لوحه 121 الجرح')).toEqual('وهب  وقال   لوحه 121 الجرح');
@@ -261,63 +296,9 @@ describe('arabic', () => {
         });
     });
 
-    describe('replaceTaMarbutahWithHa', () => {
-        it('should remove the ta marbutah with a ha', () => {
-            expect(replaceTaMarbutahWithHa('مدرسة')).toEqual('مدرسه');
-        });
-    });
-
-    describe('stripDiacritics', () => {
-        it('should remove tatweel', () => {
-            expect(stripDiacritics('أبـــتِـــكَةُ')).toEqual('أبتكة');
-        });
-
-        it('should remove tashkeel', () => {
-            expect(stripDiacritics('مُحَمَّدٌ')).toEqual('محمد');
-        });
-    });
-
-    describe('removeTatwil', () => {
-        it('should remove tatweel', () => {
-            expect(removeTatwil('أبـــتِـــكَةُ')).toEqual('أبتِكَةُ');
-        });
-
-        it('should not affect dates', () => {
-            expect(removeTatwil('1435/3/29 هـ')).toEqual('1435/3/29 هـ');
-        });
-
-        it('should not affect numbering', () => {
-            expect(removeTatwil('4ـ ومدح لكتاب')).toEqual('4ـ ومدح لكتاب');
-        });
-
-        it('should not indexed list item', () => {
-            expect(removeTatwil('3 ـ وشريط ')).toEqual('3 ـ وشريط ');
-        });
-    });
-
-    describe('stripZeroWidthCharacters', () => {
-        it('should remove the empty space', () => {
-            const text = 'يَخْلُوَ ‏. ‏ قَالَ غَرِيبٌ ‏. ‏';
-            const expected = 'يَخْلُوَ  .   قَالَ غَرِيبٌ  .  ';
-            expect(stripZeroWidthCharacters(text)).toBe(expected);
-        });
-    });
-
     describe('replaceEnglishPunctuationWithArabic', () => {
         it('should replace english question mark and semicolon with Arabic ones', () => {
             expect(replaceEnglishPunctuationWithArabic('This; and, that?')).toEqual('This؛and، that؟');
-        });
-    });
-
-    describe('replaceAlifMaqsurah', () => {
-        it('should remove the Alif maqsurah with the ya', () => {
-            expect(replaceAlifMaqsurah('رؤيى')).toEqual('رؤيي');
-        });
-    });
-
-    describe('normalizeAlifVariants', () => {
-        it('should simplify the alif with the basic one', () => {
-            expect(normalizeAlifVariants('أإآ')).toEqual('ااا');
         });
     });
 });

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'bun:test';
 
 import {
     extractInitials,
@@ -144,12 +144,6 @@ describe('transliteration', () => {
 
         it('should strip out apostrophes', () => {
             expect(normalize('`ʾʿ-')).toEqual('');
-        });
-    });
-
-    describe('normalizeApostrophes', () => {
-        it('should turn all the apostrophe characters to the regular one', () => {
-            expect(normalizeApostrophes(`‛ulama’ al-su‘`)).toEqual("'ulama' al-su'");
         });
     });
 

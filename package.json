@@ -1,7 +1,7 @@
 {
     "name": "bitaboom",
     "description": "Use string utils library to format Arabic and English translations.",
-    "version": "1.4.1",
+    "version": "1.5.0",
     "author": "Ragaeeb Haq",
     "license": "MIT",
     "private": false,
@@ -28,23 +28,19 @@
     ],
     "scripts": {
         "build": "tsup",
-        "test": "bun test --coverage --coverage-reporter=lcov"
+        "lint": "biome check --write .",
+        "format": "biome format --write .",
+        "lint:ci": "biome ci"
     },
     "keywords": [
         "formatting",
         "arabic"
     ],
     "devDependencies": {
-        "@eslint/js": "^9.34.0",
+        "@biomejs/biome": "^2.2.4",
         "@types/bun": "^1.2.21",
-        "@types/node": "^24.3.0",
-        "eslint": "^9.34.0",
-        "eslint-plugin-perfectionist": "^4.15.0",
-        "eslint-plugin-prettier": "^5.5.4",
-        "globals": "^16.3.0",
-        "prettier": "^3.6.2",
-        "semantic-release": "^24.2.7",
-        "tsup": "^8.5.0",
-        "typescript-eslint": "^8.42.0"
+        "@types/node": "^24.3.1",
+        "semantic-release": "^24.2.8",
+        "tsup": "^8.5.0"
     }
 }

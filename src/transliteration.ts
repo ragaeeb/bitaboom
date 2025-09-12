@@ -59,17 +59,6 @@ export const normalize = (input: string) => {
 };
 
 /**
- * Replaces various apostrophe characters (‛, ’, ‘) with the standard apostrophe (').
- * Example: '‛ulama’ al-su‘' becomes ''ulama' al-su''.
- *
- * @param {string} text - The input text containing different apostrophe characters.
- * @returns {string} - The modified text with normalized apostrophes.
- */
-export const normalizeApostrophes = (text: string) => {
-    return text.replace(/‛|’|‘/g, "'");
-};
-
-/**
  * Strips common Arabic prefixes like 'al-', 'bi-', 'fī', 'wa-', etc. from the beginning of words.
  * Example: 'al-Bukhari' becomes 'Bukhari'.
  *

@@ -1,9 +1,8 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'bun:test';
 
 import {
     addSpaceBeforeAndAfterPunctuation,
     applySmartQuotes,
-    cleanJunkFromText,
     cleanLiteralNewLines,
     cleanMultilines,
     cleanSpacesBeforePeriod,
@@ -386,74 +385,6 @@ describe('formatting', () => {
     describe('cleanLiteralNewLines', () => {
         it('should turn the literal new line text into line break', () => {
             expect(cleanLiteralNewLines('A\\nB')).toEqual('A\nB');
-        });
-    });
-
-    describe('cleanJunkFromText', () => {
-        it('should remove the first line if it is only punctuation', () => {
-            const input = '!@#\nThis is a test.';
-            const output = 'This is a test.';
-            expect(cleanJunkFromText(input)).toBe(output);
-        });
-
-        it('should remove the last line if it is only punctuation', () => {
-            const input = 'This is a test.\n!@#';
-            const output = 'This is a test.';
-            expect(cleanJunkFromText(input)).toBe(output);
-        });
-
-        it('should remove both the first and last line if they are only punctuation', () => {
-            const input = '!@#\nThis is a test.\n!@#';
-            const output = 'This is a test.';
-            expect(cleanJunkFromText(input)).toBe(output);
-        });
-
-        it('should not remove any lines if none are only punctuation', () => {
-            const input = 'First line.\nThis is a test.\nLast line.';
-            const output = 'First line.\nThis is a test.\nLast line.';
-            expect(cleanJunkFromText(input)).toBe(output);
-        });
-
-        it('should remove the first line if it has length 1', () => {
-            const input = 'A\nThis is a test.';
-            const output = 'This is a test.';
-            expect(cleanJunkFromText(input)).toBe(output);
-        });
-
-        it('should remove the last line if it has length 1', () => {
-            const input = 'This is a test.\nA';
-            const output = 'This is a test.';
-            expect(cleanJunkFromText(input)).toBe(output);
-        });
-
-        it('should remove both the first and last line if they have length 1', () => {
-            const input = 'A\nThis is a test.\nB';
-            const output = 'This is a test.';
-            expect(cleanJunkFromText(input)).toBe(output);
-        });
-
-        it('should return an empty string if the input is a single punctuation line', () => {
-            const input = '!@#';
-            const output = '';
-            expect(cleanJunkFromText(input)).toBe(output);
-        });
-
-        it('should return an empty string if the input is a single character line', () => {
-            const input = 'A';
-            const output = '';
-            expect(cleanJunkFromText(input)).toBe(output);
-        });
-
-        it('should handle input with only valid lines correctly', () => {
-            const input = ' First line.\nSecond line.\nThird line. ';
-            const output = 'First line.\nSecond line.\nThird line.';
-            expect(cleanJunkFromText(input)).toBe(output);
-        });
-
-        it('should handle input with mixed valid and invalid lines correctly', () => {
-            const input = 'A\nFirst line.\nSecond line.\nC\nThird line.\nB';
-            const output = 'First line.\nSecond line.\nThird line.';
-            expect(cleanJunkFromText(input)).toBe(output);
         });
     });
 
