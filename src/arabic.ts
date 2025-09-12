@@ -1,4 +1,34 @@
 /**
+ * Converts Arabic-Indic numerals (٠-٩) to a JavaScript number.
+ *
+ * This function finds all Arabic-Indic digits in the input string and converts them
+ * to their corresponding Arabic (Western) digits, then parses the result as an integer.
+ *
+ * Arabic-Indic digits mapping:
+ * - ٠ → 0, ١ → 1, ٢ → 2, ٣ → 3, ٤ → 4
+ * - ٥ → 5, ٦ → 6, ٧ → 7, ٨ → 8, ٩ → 9
+ *
+ * @param arabic - The string containing Arabic-Indic numerals to convert
+ * @returns The parsed integer value of the converted numerals
+ *
+ * @example
+ * ```typescript
+ * arabicNumeralToNumber("١٢٣"); // returns 123
+ * arabicNumeralToNumber("٥٠"); // returns 50
+ * arabicNumeralToNumber("abc١٢٣xyz"); // returns 123 (non-digits ignored)
+ * arabicNumeralToNumber(""); // returns NaN
+ * ```
+ *
+ * Returns NaN if no valid Arabic-Indic digits are found
+ */
+export const arabicNumeralToNumber = (arabic: string) => {
+    return parseInt(
+        arabic.replace(/[\u0660-\u0669]/g, (c) => (c.charCodeAt(0) - 0x0660).toString()),
+        10,
+    );
+};
+
+/**
  * Removes extreme Arabic underscores (ـ) that appear at the beginning or end of a line or in text.
  * Does not affect Hijri dates (e.g., 1424هـ) or specific Arabic terms.
  * Example: "ـThis is a textـ" will be changed to "This is a text".
@@ -63,16 +93,6 @@ export const addSpaceBetweenArabicTextAndNumbers = (text: string) => {
 };
 
 /**
- * Removes English letters and symbols from the text, including ampersands, slashes, and other symbols.
- * Example: 'أحب & لنفسي' will be changed to 'أحب   لنفسي'.
- * @param {string} text - The input text containing English letters and symbols.
- * @returns {string} - The modified text with English letters and symbols removed.
- */
-export const stripEnglishCharactersAndSymbols = (text: string) => {
-    return text.replace(/[a-zA-Z]+[0-9]*|[¬§`ﷺ=]|\/{2,}|&/g, ' ');
-};
-
-/**
  * Removes single-digit numbers surrounded by Arabic text. Also removes dashes (-) not followed by a number.
  * For example, removes '3' from 'وهب 3 وقال' but does not remove '121' from 'لوحه 121 الجرح'.
  * @param {string} text - The input text to apply the rule to.
@@ -105,62 +125,6 @@ export const removeSolitaryArabicLetters = (text: string) => {
 };
 
 /**
- * Removes tatweel characters while preserving dates references and numbered list items.
- * Example: "1435/3/29 هـ" remains as "1435/3/29 هـ" but "أبـــتِـــكَةُ" becomes "أبتِكَةُ"
- * @param text The text to format.
- * @returns The modified text with the tatweel characters removed.
- */
-export const removeTatwil = (text: string) => {
-    // Don't remove tatweel if:
-    // 1. Immediately preceded by a number or ه (for dates like "1435هـ")
-    // 2. Preceded by a number with optional spaces (for list items like "3 ـ")
-    return text.replace(/(?<![0-9ه])(?<![0-9]\s*)ـ/g, '');
-};
-
-/**
- * Replaces the 'tah marbutah' (ة) character with 'ha' (ه).
- * Example: 'مدرسة' will be changed to 'مدرسه'.
- * @param {string} text - The input text to apply the rule to.
- * @returns {string} - The modified text with 'ta marbutah' replaced by 'ha'.
- */
-export const replaceTaMarbutahWithHa = (text: string) => {
-    return text.replace(/[ة]/g, 'ه');
-};
-
-/**
- * Removes Arabic diacritics (tashkeel) and the tatweel (elongation) character.
- * Example: 'مُحَمَّدٌ' will be changed to 'محمد'.
- * @param {string} text - The input text to apply the rule to.
- * @returns {string} - The modified text with diacritics and tatweel removed.
- */
-export const stripDiacritics = (text: string) => {
-    return text.replace(
-        /[\u0610\u0611\u0612\u0613\u0614\u0615\u0616\u0617\u0618\u0619\u061A\u064B\u064C\u064D\u064E\u064F\u0650\u0651\u0652\u0653\u0654\u0655\u0656\u0657\u0658\u065A\u065B\u065C\u065D\u065E\u0640]/g,
-        '',
-    );
-};
-
-/**
- * Removes zero-width joiners (ZWJ) and other zero-width characters from the input text.
- * Zero-width characters include U+200B to U+200F, U+202A to U+202E, U+2060 to U+2064, and U+FEFF.
- * @param {string} text - The input text to apply the rule to.
- * @returns {string} - The modified text with zero-width characters removed.
- */
-export const stripZeroWidthCharacters = (text: string) => {
-    return text.replace(/[\u200B-\u200F\u202A-\u202E\u2060-\u2064\uFEFF]/g, ' ');
-};
-
-/**
- * Replaces the 'alif maqsurah' (ى) character with the regular 'ya' (ي).
- * Example: 'رؤيى' will be changed to 'رؤيي'.
- * @param {string} text - The input text to apply the rule to.
- * @returns {string} - The modified text with 'alif maqsurah' replaced by 'ya'.
- */
-export const replaceAlifMaqsurah = (text: string) => {
-    return text.replace(/[ىي]/g, 'ي');
-};
-
-/**
  * Replaces English punctuation (question mark and semicolon) with their Arabic equivalents.
  * Example: '?' will be replaced with '؟', and ';' with '؛'.
  * @param {string} text - The input text to apply the rule to.
@@ -171,14 +135,4 @@ export const replaceEnglishPunctuationWithArabic = (text: string) => {
         .replace(/\?|؟\./g, '؟')
         .replace(/(;|؛)\s*(\1\s*)*/g, '؛')
         .replace(/,|-،/g, '،');
-};
-
-/**
- * Simplifies all forms of 'alif' (أ, إ, and آ) to the basic 'ا'.
- * Example: 'أنا إلى الآفاق' will be changed to 'انا الى الافاق'.
- * @param {string} text - The input text to apply the rule to.
- * @returns {string} - The modified text with simplified 'alif' characters.
- */
-export const normalizeAlifVariants = (text: string) => {
-    return text.replace(/[أإآ]/g, 'ا');
 };

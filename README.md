@@ -89,6 +89,25 @@ applySmartQuotes('The "quick brown" fox');
 
 ---
 
+### `arabicNumeralToNumber`
+
+Converts Arabic-Indic numerals (٠-٩) to a JavaScript number. This function finds all Arabic-Indic digits in the input string and converts them to their corresponding Arabic (Western) digits, then parses the result as an integer.
+
+#### Example
+
+```javascript
+arabicNumeralToNumber("١٢٣");
+// Output: 123
+
+arabicNumeralToNumber("٥٠");
+// Output: 50
+
+arabicNumeralToNumber("abc١٢٣xyz");
+// Output: 123 (non-digits ignored)
+```
+
+---
+
 ### `cleanExtremeArabicUnderscores`
 
 Removes extreme Arabic underscores (ـ) from the beginning or end of lines. It does not affect Hijri dates or certain Arabic terms.
@@ -101,17 +120,6 @@ cleanExtremeArabicUnderscores('ـThis is a textـ');
 ```
 
 ---
-
-### `cleanJunkFromText`
-
-Cleans unnecessary spaces and punctuation from text.
-
-#### Example
-
-```javascript
-cleanJunkFromText('Some text !@#\nAnother line.');
-// Output: 'Some text\nAnother line.'
-```
 
 ### `cleanLiteralNewLines`
 
@@ -206,6 +214,19 @@ ensureSpaceBeforeQuotes('text«quote»');
 
 ensureSpaceBeforeQuotes('text   «quote»');
 // Output: 'text «quote»'
+```
+
+---
+
+### `escapeRegex`
+
+Escapes a string so it can be safely embedded into a RegExp source.
+
+#### Example
+
+```javascript
+escapeRegex('Hello [world]');
+// Output: 'Hello \\[world\\]'
 ```
 
 ---
@@ -397,30 +418,6 @@ const pattern = makeDiacriticInsensitive('محمد');
 const regex = new RegExp(pattern, 'gi');
 regex.test('مُحَمَّد'); // true
 regex.test('محمد'); // true
-```
-
----
-
-### `normalizeAlifVariants`
-
-Simplifies all forms of 'alif' (أ, إ, and آ) to the basic 'ا'.
-
-#### Example
-
-```javascript
-normalizeAlifVariants('أنا إلى الآفاق');
-// Output: 'انا الى الافاق'
-```
-
-### `normalizeApostrophes`
-
-Replaces various apostrophe characters like ‛, ', and ' with the standard apostrophe (').
-
-#### Example
-
-```javascript
-normalizeApostrophes('‛ulama' al-su'');
-// Output: "'ulama' al-su'"
 ```
 
 ---
@@ -632,25 +629,6 @@ removeSolitaryArabicLetters('ب ا الكلمات ت');
 
 ---
 
-### `removeTatwil` (Updated)
-
-Removes tatweel characters while preserving dates references and numbered list items. Example: "1435/3/29 هـ" remains as "1435/3/29 هـ" but "أبـــتِـــكَةُ" becomes "أبتِكَةُ". Also preserves tatweels in numbered list items like "3 ـ item".
-
-#### Example
-
-```javascript
-removeTatwil('أبـــتِـــكَةُ');
-// Output: 'أبتِكَةُ'
-
-removeTatwil('1435/3/29 هـ');
-// Output: '1435/3/29 هـ' (unchanged)
-
-removeTatwil('3 ـ وشريط');
-// Output: '3 ـ وشريط' (unchanged)
-```
-
----
-
 ### `removeUrls`
 
 Removes URLs from the text.
@@ -661,19 +639,6 @@ Removes URLs from the text.
 removeUrls('Visit https://example.com');
 // Output: 'Visit '
 ```
-
-### `replaceAlifMaqsurah`
-
-Replaces 'alif maqsurah' (ى) with 'ya' (ي).
-
-#### Example
-
-```javascript
-replaceAlifMaqsurah('رؤيى');
-// Output: 'رؤيي'
-```
-
----
 
 ### `replaceDoubleBracketsWithArrows`
 
@@ -730,19 +695,6 @@ replaceSalutationsWithSymbol('Then Muḥammad (sallahu alayhi wasallam)');
 
 ---
 
-### `replaceTaMarbutahWithHa`
-
-Replaces 'ta marbutah' (ة) with 'ha' (ه).
-
-#### Example
-
-```javascript
-replaceTaMarbutahWithHa('مدرسة');
-// Output: 'مدرسه'
-```
-
----
-
 ### `splitByQuotes`
 
 Splits a string by spaces but keeps quoted substrings intact. Substrings enclosed in double quotes are treated as a single part.
@@ -763,45 +715,6 @@ Removes all numeric digits from the text.
 ```javascript
 stripAllDigits('abc123');
 // Output: 'abc'
-```
-
----
-
-### `stripDiacritics`
-
-Removes Arabic diacritics (tashkeel) and the elongation character (ـ).
-
-#### Example
-
-```javascript
-stripDiacritics('مُحَمَّدٌ');
-// Output: 'محمد'
-```
-
----
-
-### `stripEnglishCharactersAndSymbols`
-
-Removes English letters and symbols from the text.
-
-#### Example
-
-```javascript
-stripEnglishCharactersAndSymbols('أحب & لنفسي');
-// Output: 'أحب   لنفسي'
-```
-
----
-
-### `stripZeroWidthCharacters`
-
-Removes zero-width characters like ZWJ and other invisible characters.
-
-#### Example
-
-```javascript
-stripZeroWidthCharacters('يَخْلُوَ ‏.');
-// Output: 'يَخْلُوَ .'
 ```
 
 ---
@@ -875,3 +788,58 @@ unescapeSpaces('regular text');
 ```
 
 ---
+
+
+## sanitizeArabic — unified Arabic text sanitizer
+
+`sanitizeArabic(input, optionsOrPreset)` provides fast, configurable cleanup for Arabic text and replaces older per-rule utilities.
+It supports presets (`"light"`, `"search"`, `"aggressive"`) and fine-grained options like `stripDiacritics`, `stripTatweel`, `normalizeAlif`,
+`replaceAlifMaqsurah`, `replaceTaMarbutahWithHa`, `stripZeroWidth`, `zeroWidthToSpace`, `stripLatinAndSymbols`, `lettersAndSpacesOnly`,
+`keepOnlyArabicLetters`, `collapseWhitespace`, `trim`, and `removeHijriMarker`. For one-off rules, use `base: 'none'` to apply only what you specify.
+
+**Examples**
+
+```ts
+import { sanitizeArabic } from 'bitaboom';
+
+// Light display cleanup
+sanitizeArabic('  مرحبا\u200C\u200D   بالعالم  ', 'light'); // → 'مرحبا بالعالم'
+
+// Tolerant search normalization
+sanitizeArabic('اَلسَّلَامُ عَلَيْكُمْ', 'search'); // → 'السلام عليكم'
+
+// Indexing-friendly text (letters + spaces only)
+sanitizeArabic('اَلسَّلَامُ 1435/3/29 هـ — www', 'aggressive'); // → 'السلام'
+
+// Tatweel-only, preserving dates/list markers
+sanitizeArabic('أبـــتِـــكَةُ', { base: 'none', stripTatweel: true }); // → 'أبتِكَةُ'
+
+// Zero-width controls → spaces
+sanitizeArabic('يَخْلُوَ ‏. ‏ قَالَ غَرِيبٌ ‏. ‏', { base: 'none', stripZeroWidth: true, zeroWidthToSpace: true });
+// → 'يَخْلُوَ  .   قَالَ غَرِيبٌ  .  '
+```
+
+## makeDiacriticInsensitiveRegex — tolerant Arabic matcher
+
+`makeDiacriticInsensitiveRegex(needle, opts?)` returns a `RegExp` that matches Arabic text while ignoring diacritics,
+optionally tolerating tatweel, and treating common equivalents as equal (`ا~أ~إ~آ`, `ة~ه`, `ى~ي`). Whitespace in the needle
+is treated as `\s+` by default, making it robust across spacing variants.
+
+**Examples**
+
+```ts
+import { makeDiacriticInsensitiveRegex } from 'bitaboom';
+
+const rx = makeDiacriticInsensitiveRegex('أنا إلى الآفاق');
+rx.test('انا الى الافاق'); // true
+rx.test('أنا الي الآفاق'); // true
+```
+
+**Composing tolerant heads with a literal tail**
+
+```ts
+const heads = ['السلام', 'مرحبا'];
+const pattern = heads.map(h => makeDiacriticInsensitiveRegex(h).source).join('|');
+const rx2 = new RegExp(`^(?:${pattern})\s+عليكم.*$`, 'mu');
+rx2.test('اَلسَّلَامُ عَلَيْكُمْ ورحمة'); // true
+```

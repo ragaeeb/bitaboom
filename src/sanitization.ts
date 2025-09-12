@@ -1,3 +1,5 @@
+import { escapeRegex } from './cleaning';
+
 /**
  * Removes various symbols, part references, and numerical markers from the text.
  * Example: '(1) (2/3)' becomes ''.
@@ -220,19 +222,16 @@ const EQUIV_GROUPS: string[][] = [
     ['\u0649', '\u064A'], // ى <-> ي
 ];
 
-/** Escape regex special characters (if the search word contains punctuation). */
-const escapeForRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
 /** Return a character class for a char if it belongs to an equivalence group. */
 const getEquivClass = (ch: string): string => {
     for (const group of EQUIV_GROUPS) {
         if (group.includes(ch)) {
             // join the group's members into a character class
-            return `[${group.map((c) => escapeForRegex(c)).join('')}]`;
+            return `[${group.map((c) => escapeRegex(c)).join('')}]`;
         }
     }
     // not in equivalence groups -> return escaped character
-    return escapeForRegex(ch);
+    return escapeRegex(ch);
 };
 
 /** Small safe normalization: NFC, remove ZWJ/ZWNJ, collapse spaces. */

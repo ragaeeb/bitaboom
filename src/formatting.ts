@@ -81,15 +81,6 @@ export const isOnlyPunctuation = (text: string): boolean => {
     return regex.test(text);
 };
 
-export const cleanJunkFromText = (text: string) => {
-    const newBody = cleanMultilines(text);
-    const lines = newBody.split('\n').filter((line) => {
-        return !line || (line.length > 1 && !isOnlyPunctuation(line));
-    });
-
-    return lines.join('\n').trim();
-};
-
 /**
  * Cleans unnecessary spaces before punctuation marks such as periods, commas, and question marks.
  * Example: 'This is a sentence , with extra space .' becomes 'This is a sentence, with extra space.'.
