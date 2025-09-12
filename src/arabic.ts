@@ -19,7 +19,7 @@
  * arabicNumeralToNumber(""); // returns NaN
  * ```
  *
- * @throws Will return NaN if no valid Arabic-Indic digits are found
+ * Returns NaN if no valid Arabic-Indic digits are found
  */
 export const arabicNumeralToNumber = (arabic: string) => {
     return parseInt(

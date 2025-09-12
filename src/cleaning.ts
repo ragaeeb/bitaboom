@@ -89,7 +89,7 @@ type PresetOptions = {
 const RX_SPACES = /\s+/g;
 const RX_TATWEEL = /\u0640/g;
 const RX_DIACRITICS = /[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/g;
-const RX_ALIF_VARIANTS = /[أإآ]/g;
+const RX_ALIF_VARIANTS = /[أإآٱ]/g;
 const RX_ALIF_MAQSURAH = /\u0649/g;
 const RX_TA_MARBUTAH = /\u0629/g;
 const RX_ZERO_WIDTH = /[\u200B-\u200F\u202A-\u202E\u2060-\u2064\uFEFF]/g;
@@ -370,8 +370,12 @@ export const sanitizeArabic = (input: string, optionsOrPreset: SanitizePreset | 
     }
     s = removeDiacriticsAndTatweel(s, removeDia, tatweelMode);
     s = applyCharacterMappings(s, normAlif, maqToYa, taToHa);
-    s = removeLatinAndSymbolNoise(s, stripNoise);
+
+    if (!lettersSpacesOnly) {
+        s = removeLatinAndSymbolNoise(s, stripNoise);
+    }
     s = applyLetterFilters(s, lettersSpacesOnly, lettersOnly);
+
     s = normalizeWhitespace(s, collapseWS, doTrim);
 
     return s;
@@ -459,6 +463,11 @@ export const makeDiacriticInsensitiveRegex = (needle: string, opts: MakeRegexOpt
         flexWhitespace = true,
         flags = 'u',
     } = opts;
+
+    // Safety guard against extremely large inputs causing excessive pattern sizes
+    if (needle.length > 5000) {
+        throw new Error('makeDiacriticInsensitiveRegex: needle too long');
+    }
 
     const charClass = (ch: string): string => {
         switch (ch) {
