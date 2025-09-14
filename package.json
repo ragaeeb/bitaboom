@@ -1,7 +1,7 @@
 {
     "name": "bitaboom",
     "description": "Use string utils library to format Arabic and English translations.",
-    "version": "1.5.0",
+    "version": "2.0.0",
     "author": "Ragaeeb Haq",
     "license": "MIT",
     "private": false,
@@ -22,9 +22,7 @@
         "node": ">=22.0.0"
     },
     "files": [
-        "dist/index.js",
-        "dist/index.js.map",
-        "dist/*.d.ts"
+        "dist/**"
     ],
     "scripts": {
         "build": "tsup",
@@ -39,7 +37,7 @@
     "devDependencies": {
         "@biomejs/biome": "^2.2.4",
         "@types/bun": "^1.2.21",
-        "@types/node": "^24.3.1",
+        "@types/node": "^24.3.3",
         "semantic-release": "^24.2.8",
         "tsup": "^8.5.0"
     }
