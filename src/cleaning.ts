@@ -117,3 +117,5 @@ export const makeDiacriticInsensitiveRegex = (needle: string, opts: MakeRegexOpt
 
     return new RegExp(pattern, flags);
 };
+
+export const removeAllTags = (content: string) => content.replace(/<[^>]*>/g, '');

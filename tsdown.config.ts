@@ -1,4 +1,4 @@
-import { defineConfig } from 'tsup';
+import { defineConfig } from 'tsdown';
 
 export default defineConfig({
     clean: true,
@@ -6,6 +6,7 @@ export default defineConfig({
     entry: ['src/index.ts'],
     format: ['esm'],
     minify: true,
+    platform: 'neutral',
     sourcemap: true,
     target: 'esnext',
 });

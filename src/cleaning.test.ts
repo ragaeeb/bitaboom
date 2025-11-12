@@ -2,6 +2,20 @@ import { describe, expect, it } from 'bun:test';
 import { escapeRegex, makeDiacriticInsensitiveRegex } from './cleaning';
 
 describe('cleaning', () => {
+    describe('cleaning > escapeRegex', () => {
+        it('should escape special regex characters', () => {
+            expect(escapeRegex('.*+?^${}()|[]\\')).toBe('\\.\\*\\+\\?\\^\\$\\{\\}\\(\\)\\|\\[\\]\\\\');
+        });
+
+        it('should leave alphanumeric characters untouched', () => {
+            expect(escapeRegex('abc123')).toBe('abc123');
+        });
+
+        it('should handle mixed content', () => {
+            expect(escapeRegex('a+b(c)d[e]f{g}|h^i$j')).toBe('a\\+b\\(c\\)d\\[e\\]f\\{g\\}\\|h\\^i\\$j');
+        });
+    });
+
     describe('cleaning > makeDiacriticInsensitiveRegex', () => {
         it('should match with/without diacritics', () => {
             const rx = makeDiacriticInsensitiveRegex('السلام عليكم');

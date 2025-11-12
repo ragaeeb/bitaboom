@@ -222,7 +222,16 @@ const EQUIV_GROUPS: string[][] = [
     ['\u0649', '\u064A'], // ى <-> ي
 ];
 
-/** Return a character class for a char if it belongs to an equivalence group. */
+/**
+ * Return an escaped character class representing all equivalents for the given character.
+ *
+ * If the character belongs to one of the predefined equivalence groups (e.g. ا/آ/أ/إ),
+ * the returned class will match any member of that group. Otherwise, the original
+ * character is simply escaped for safe inclusion in a regular expression.
+ *
+ * @param ch - A single character to expand into its equivalence class
+ * @returns A RegExp-safe string representing the character (and its equivalents when applicable)
+ */
 const getEquivClass = (ch: string): string => {
     for (const group of EQUIV_GROUPS) {
         if (group.includes(ch)) {

@@ -1,3 +1,5 @@
+import { PATTERN_ENDS_WITH_PUNCTUATION } from './constants';
+
 /**
  * Converts Arabic-Indic numerals (٠-٩) to a JavaScript number.
  *
@@ -69,6 +71,33 @@ export const getArabicScore = (text: string) => {
     const arabicMatches = cleaned.match(arabicLettersPattern) || [];
     const totalMatches = cleaned.match(countedCharsPattern) || [];
     return totalMatches.length === 0 ? 0 : arabicMatches.length / totalMatches.length;
+};
+
+/**
+ * Finds the position of the last punctuation character in a string
+ *
+ * @param text - The text to search through
+ * @returns The index of the last punctuation character, or -1 if none found
+ *
+ * @example
+ * ```typescript
+ * const text = "Hello world! How are you?";
+ * const lastPuncIndex = findLastPunctuation(text);
+ * // Result: 24 (position of the last '?')
+ *
+ * const noPuncText = "Hello world";
+ * const notFound = findLastPunctuation(noPuncText);
+ * // Result: -1 (no punctuation found)
+ * ```
+ */
+export const findLastPunctuation = (text: string) => {
+    for (let i = text.length - 1; i >= 0; i--) {
+        if (PATTERN_ENDS_WITH_PUNCTUATION.test(text[i])) {
+            return i;
+        }
+    }
+
+    return -1;
 };
 
 /**
