@@ -42,10 +42,22 @@ const plain = removeMarkdownFormatting('**Bold** _italic_ [link](https://example
 console.log(plain); // "Bold italic link"
 ```
 
+### High-performance Arabic preformatting
+
+If you need to normalize messy Arabic/OCR text at scale (spacing, punctuation, brackets, ellipses, references), use the single-pass preformatter:
+
+```typescript
+import { preformatArabicText } from 'bitaboom';
+
+preformatArabicText('بِسْمِ  اللَّهِ ( الرَّحْمَنِ ) 127 / 11 قَالَ ...');
+preformatArabicText(['صفحة 1 ...', 'صفحة 2 ...']); // batch mode
+```
+
 ## Feature highlights
 
 - **Arabic-first matching** – build diacritic-insensitive regular expressions, collapse tatweel, score Arabic content density, and replace Urdu glyphs.
 - **Rich typography normalisers** – more than 30 helpers to fix punctuation spacing, quotes, brackets, ellipses, smart quotes, uppercase detection, and whitespace quirks.
+- **Single-pass Arabic preformatter** – `preformatArabicText` consolidates the common formatting pipeline and is optimized for large datasets.
 - **Sanitisation pipelines** – strip references, URLs, part markers, markdown decorations, escaped spaces, or numbers in bilingual text.
 - **Parsing helpers** – validate JSON-ish blobs, split search queries by quotes, balance parentheses/quotes, and expand page range strings.
 - **Transliteration polish** – normalise common Arabic prefixes (`al-`, `wa-`, `bi-`), dedupe apostrophes, replace salutations with ﷺ, and extract initials from transliterated names.
@@ -150,6 +162,12 @@ All modules are exported from `src/index.ts`. Functions are grouped below by fea
 | `removeArabicPrefixes` | Remove prefixes such as `al-`, `wa-`, `bi-`, `fī`, `li-`. |
 | `normalizeTransliteratedEnglish` | Combine prefix removal + diacritic stripping. |
 | `extractInitials` | Extract the first letters from up to two words (after normalisation). |
+
+### Preformatting pipeline (`src/preformat.ts`)
+
+| Function | Description |
+| --- | --- |
+| `preformatArabicText` | High-performance Arabic preformatting pipeline (single-pass, optimized for large datasets). Accepts a single string or an array of strings. |
 
 ## Build & development
 

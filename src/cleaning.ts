@@ -118,4 +118,13 @@ export const makeDiacriticInsensitiveRegex = (needle: string, opts: MakeRegexOpt
     return new RegExp(pattern, flags);
 };
 
+/**
+ * Remove simple HTML/XML-like tags from a string.
+ *
+ * This is intentionally lightweight and does not attempt to parse HTML; it simply drops
+ * substrings that look like `<...>`.
+ *
+ * @param content Input string
+ * @returns String with tags removed
+ */
 export const removeAllTags = (content: string) => content.replace(/<[^>]*>/g, '');

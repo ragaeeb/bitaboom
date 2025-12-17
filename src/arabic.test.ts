@@ -112,6 +112,23 @@ describe('arabic', () => {
                 'الأشاعرة لكنهما ما قصدوا مخالفة الكتاب والسنة وإنما وهموا وظنوا',
             );
         });
+
+        it('should handle empty string', () => {
+            expect(fixTrailingWow('')).toBe('');
+        });
+
+        it('should handle text with no trailing wow', () => {
+            expect(fixTrailingWow('السلام عليكم ورحمة الله')).toBe('السلام عليكم ورحمة الله');
+        });
+
+        it('should not change text with diacritics on wow', () => {
+            // The pattern only matches ' و ' (plain wow), not 'وَ' with diacritics
+            expect(fixTrailingWow('الْكِتَابُ وَ السُّنَّةُ')).toBe('الْكِتَابُ وَ السُّنَّةُ');
+        });
+
+        it('should fix multiple occurrences of trailing wow', () => {
+            expect(fixTrailingWow('أ و ب و ج و د')).toBe('أ وب وج ود');
+        });
     });
 
     describe('getArabicScore', () => {
@@ -198,6 +215,22 @@ describe('arabic', () => {
 
         it('should handle a string with no Arabic text and number', () => {
             expect(addSpaceBetweenArabicTextAndNumbers('Hello World123')).toBe('Hello World123');
+        });
+
+        it('should handle empty string', () => {
+            expect(addSpaceBetweenArabicTextAndNumbers('')).toBe('');
+        });
+
+        it('should handle text with diacritics before numbers', () => {
+            expect(addSpaceBetweenArabicTextAndNumbers('الآيَةُ37')).toBe('الآيَةُ 37');
+        });
+
+        it('should handle multiple Arabic-number transitions', () => {
+            expect(addSpaceBetweenArabicTextAndNumbers('سورة1 آية2 جزء3')).toBe('سورة 1 آية 2 جزء 3');
+        });
+
+        it('should already have space - no change', () => {
+            expect(addSpaceBetweenArabicTextAndNumbers('الآية 37')).toBe('الآية 37');
         });
     });
 

@@ -1,6 +1,9 @@
 /**
  * Adds line breaks after punctuation marks such as periods, exclamation points, and question marks.
  * Example: 'Text.' becomes 'Text.\n'.
+ *
+ * Note: For the full preformatting pipeline in one pass (significantly faster and more memory-friendly
+ * on very large inputs), use `preformatArabicText` from `src/preformat.ts`.
  * @param {string} text - The input text containing punctuation.
  * @returns {string} - The modified text with line breaks added after punctuation.
  */
@@ -478,10 +481,14 @@ export const toTitleCase = (str: string) => {
         .toLowerCase()
         .split(' ')
         .map((word) => {
-            if (word.length === 0) return word;
+            if (word.length === 0) {
+                return word;
+            }
             // Find the first Unicode letter in the chunk
             const match = word.match(/\p{L}/u);
-            if (!match || match.index === undefined) return word;
+            if (!match || match.index === undefined) {
+                return word;
+            }
             const i = match.index;
             return word.slice(0, i) + word.charAt(i).toUpperCase() + word.slice(i + 1);
         })
