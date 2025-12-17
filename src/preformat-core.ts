@@ -80,6 +80,11 @@ const C_UNDERSCORE = 95;
 const C_ASTERISK = 42;
 const C_L_PAREN = 40;
 const C_R_PAREN = 41;
+const C_L_GUILLEMET = 171; // «
+const C_R_GUILLEMET = 187; // »
+const C_DQUOTE = 34; // "
+const C_SQUOTE = 39; // '
+const C_RDQUOTE = 8221; // ”
 const C_WOW = 1608; // و
 const C_AR_COMMA = 1548; // ،
 const C_AR_SEMICOLON = 1563; // ؛
@@ -194,6 +199,14 @@ class Utf16Builder {
 // ==============================================================================
 
 /**
+ * NOTE ON MAINTAINABILITY:
+ *
+ * `processStringConcat` and `processStringBuffer` must remain byte-for-byte identical in behavior.
+ * Any bug fix or behavior change MUST be applied to both implementations, and should be validated
+ * by running the correctness tests (including `src/preformat.memory.test.ts` for large inputs).
+ */
+
+/**
  * Preformat using string concatenation (`res += ...`).
  *
  * This is typically fastest for common page-sized inputs under Bun/V8.
@@ -274,10 +287,10 @@ const processStringConcat = (text: string): string => {
 
             // Double Brackets
             else if (code === C_L_PAREN && text.charCodeAt(i + 1) === C_L_PAREN) {
-                code = 171; // « (\u00AB)
+                code = C_L_GUILLEMET; // « (\u00AB)
                 i++;
             } else if (code === C_R_PAREN && text.charCodeAt(i + 1) === C_R_PAREN) {
-                code = 187; // » (\u00BB)
+                code = C_R_GUILLEMET; // » (\u00BB)
                 i++;
             }
 
@@ -407,10 +420,10 @@ const processStringConcat = (text: string): string => {
                 code === C_NEWLINE ||
                 code === C_CR ||
                 currentFlags & F_CLOSING ||
-                code === 34 ||
-                code === 39 ||
-                code === 187 ||
-                code === 8221 ||
+                code === C_DQUOTE ||
+                code === C_SQUOTE ||
+                code === C_R_GUILLEMET ||
+                code === C_RDQUOTE ||
                 code === lastCode ||
                 ((lastCode === C_AR_Q_MARK || lastCode === C_EXCLAM) && (code === C_DOT || code === C_AR_COMMA));
 
@@ -519,10 +532,10 @@ const processStringBuffer = (text: string): string => {
 
             // Double Brackets
             else if (code === C_L_PAREN && text.charCodeAt(i + 1) === C_L_PAREN) {
-                code = 171; // « (\u00AB)
+                code = C_L_GUILLEMET; // « (\u00AB)
                 i++;
             } else if (code === C_R_PAREN && text.charCodeAt(i + 1) === C_R_PAREN) {
-                code = 187; // » (\u00BB)
+                code = C_R_GUILLEMET; // » (\u00BB)
                 i++;
             }
 
@@ -653,10 +666,10 @@ const processStringBuffer = (text: string): string => {
                 code === C_NEWLINE ||
                 code === C_CR ||
                 currentFlags & F_CLOSING ||
-                code === 34 ||
-                code === 39 ||
-                code === 187 ||
-                code === 8221 ||
+                code === C_DQUOTE ||
+                code === C_SQUOTE ||
+                code === C_R_GUILLEMET ||
+                code === C_RDQUOTE ||
                 code === lastCode ||
                 ((lastCode === C_AR_Q_MARK || lastCode === C_EXCLAM) && (code === C_DOT || code === C_AR_COMMA));
 
