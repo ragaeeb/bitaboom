@@ -386,6 +386,26 @@ describe('formatting', () => {
         it('should turn the literal new line text into line break', () => {
             expect(cleanLiteralNewLines('A\\nB')).toEqual('A\nB');
         });
+
+        it('should handle carriage returns', () => {
+            expect(cleanLiteralNewLines('A\rB')).toEqual('A\nB');
+        });
+
+        it('should handle multiple literal newlines', () => {
+            expect(cleanLiteralNewLines('A\\nB\\nC\\nD')).toEqual('A\nB\nC\nD');
+        });
+
+        it('should handle empty string', () => {
+            expect(cleanLiteralNewLines('')).toEqual('');
+        });
+
+        it('should handle text with no newlines', () => {
+            expect(cleanLiteralNewLines('hello world')).toEqual('hello world');
+        });
+
+        it('should handle Arabic text with literal newlines', () => {
+            expect(cleanLiteralNewLines('مرحبا\\nالعالم')).toEqual('مرحبا\nالعالم');
+        });
     });
 
     describe('cleanMultilineSpaces', () => {

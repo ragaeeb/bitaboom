@@ -11,6 +11,7 @@
 
 ## Source layout
 - All runtime code lives in `src/` and is exported through `src/index.ts`.
+- `src/preformat.ts` is the public preformatting entry point. Implementation/benchmark variants live in `src/preformat-core.ts` and are **not** exported from `src/index.ts`.
 - When you add or rename functions, update the tables in `README.md` so users can discover them easily.
 - Tests sit alongside the modules in `src/*.test.ts` and use Bun's test runner. New functionality should come with matching tests.
 
@@ -18,6 +19,15 @@
 - Follow existing TypeScript/ESM style (JSDoc on public helpers, `single` quotes, 4-space indentation). `biome` enforces the formatting rules.
 - Prefer descriptive test names using `describe`/`it`.
 - Avoid introducing dependencies that require network access during CI unless absolutely necessary.
+
+## Performance & profiling
+- Perf microbenchmarks live in `src/preformat.perf.test.ts` (runs under `bun test`).
+- Heavy memory stress tests are opt-in (skipped by default):
+  - `BITABOOM_HEAVY_TESTS=1 bun test`
+  - Optional size override: `BITABOOM_HEAVY_MB=120`
+- For internal experiments you can force the preformat builder without changing public API:
+  - `BITABOOM_PREFORMAT_BUILDER=concat`
+  - `BITABOOM_PREFORMAT_BUILDER=buffer`
 
 ## Documentation
 - Significant behaviour changes must be reflected in `README.md`.
