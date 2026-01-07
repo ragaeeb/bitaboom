@@ -497,12 +497,6 @@ class Preformatter {
             }
 
             if (this.code === C_COLON && CHAR_MAP[this.lastCode] & F_DIGIT) {
-
-            if (CHAR_MAP[this.lastCode] & F_OPENING) {
-                shouldEmitSpace = false;
-            }
-
-            if (this.code === C_COLON && CHAR_MAP[this.lastCode] & F_DIGIT) {
                 // Time/Ayah reference case: 12:30 or 5:12
                 shouldEmitSpace = false;
             } else if (
@@ -585,7 +579,7 @@ class Preformatter {
         }
     }
 
-    private isDigitColonDigit(): boolean 
+    private isDigitColonDigit(): boolean {
         if (this.lastCode === C_COLON && this.flags & F_DIGIT) {
             const prevCode = this.writer.secondLast();
             if (prevCode !== 0 && CHAR_MAP[prevCode] & F_DIGIT) {
@@ -593,8 +587,9 @@ class Preformatter {
             }
         }
         return false;
+    }
 
-    private isSpecialSpacing(): boolean 
+    private isSpecialSpacing(): boolean {
         return !!(
             this.flags & (F_SPACE | F_CLOSING | F_OPENING) ||
             this.code === C_SPACE ||
@@ -609,6 +604,7 @@ class Preformatter {
             ((this.lastCode === C_AR_Q_MARK || this.lastCode === C_EXCLAM) &&
                 (this.code === C_DOT || this.code === C_AR_COMMA))
         );
+    }
 }
 
 /**
