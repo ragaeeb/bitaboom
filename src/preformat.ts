@@ -69,7 +69,6 @@ const C_SPACE = 32;
 const C_NEWLINE = 10;
 const C_CR = 13;
 const C_DOT = 46;
-const C_COMMA = 44;
 const C_COLON = 58;
 const C_SEMICOLON = 59;
 const C_Q_MARK = 63;
