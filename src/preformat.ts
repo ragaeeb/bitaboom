@@ -98,9 +98,7 @@ const C_ELLIPSIS = 8230; // …
  * @param code UTF-16 code unit
  * @returns True if the code unit is a trim-whitespace character
  */
-const isTrimWhitespace = (code: number) => {
-    return code === C_SPACE || code === C_TAB || code === C_NEWLINE || code === C_CR;
-};
+const isTrimWhitespace = (code: number) => code === C_SPACE || code === C_TAB || code === C_NEWLINE || code === C_CR;
 
 /**
  * Growable UTF-16 output buffer used by the buffer-backed preformat implementation.
@@ -385,12 +383,7 @@ class Preformatter {
     }
 
     private handleTransforms() {
-        if (this.code === C_Q_MARK) {
-            this.code = C_AR_Q_MARK;
-        } else if (this.code === C_SEMICOLON) {
-            this.code = C_AR_SEMICOLON;
-        }
-        // Note: Comma is NOT converted to Arabic
+        this.code = this.code === C_Q_MARK ? C_AR_Q_MARK : this.code === C_SEMICOLON ? C_AR_SEMICOLON : this.code;
     }
 
     private handleCondenseColons() {
@@ -495,43 +488,10 @@ class Preformatter {
         if (this.flags & F_NO_SPACE_BEFORE) {
             return true;
         }
-        if (this.flags & F_PUNCT && !(this.flags & F_OPENING)) {
-            // If it's punctuation (but not opening bracket), don't put space before it
-            return true;
-        }
-
         if (CHAR_MAP[this.lastCode] & F_OPENING) {
             return true;
         }
-
-        if (this.code === C_COLON && CHAR_MAP[this.lastCode] & F_DIGIT) {
-            // Time/Ayah reference case: 12:30 or 5:12
-            return true;
-        }
-
-        if (this.isTrailingPunctuation()) {
-            return true;
-        }
-
-        if (this.shouldSuppressSpaceForSlash()) {
-            return true;
-        }
-
-        return false;
-    }
-
-    private isTrailingPunctuation() {
-        return (
-            (this.code === C_Q_MARK ||
-                this.code === C_AR_Q_MARK ||
-                this.code === C_EXCLAM ||
-                this.code === C_SEMICOLON ||
-                this.code === C_AR_SEMICOLON ||
-                this.code === C_COMMA ||
-                this.code === C_AR_COMMA ||
-                this.code === C_DOT) &&
-            this.lastCode !== C_DOT
-        );
+        return this.shouldSuppressSpaceForSlash();
     }
 
     private shouldSuppressSpaceForSlash() {
