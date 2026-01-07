@@ -18,10 +18,6 @@ import {
 
 describe('sanitization', () => {
     describe('cleanSymbolsAndPartReferences', () => {
-        it.skip('should remove the references but keep possible indexes', () => {
-            expect(cleanSymbolsAndPartReferences('This is a text (1) (2/3)')).toBe('This is a text  1     ');
-        });
-
         it('should remove the references but keep possible indexes', () => {
             expect(cleanSymbolsAndPartReferences('Another example [1] [1/2]')).toBe('Another example  ');
         });
@@ -34,10 +30,6 @@ describe('sanitization', () => {
             expect(cleanSymbolsAndPartReferences('Hello، world! {test} <example> …')).toBe(
                 'Hello  world   test   example   ',
             );
-        });
-
-        it.skip('should remove text with mixed elements', () => {
-            expect(cleanSymbolsAndPartReferences('Mixed (1) [2] «3» 1/2 [1/2] ;.,!')).toBe('Mixed  1       , ');
         });
 
         it('should handle text with backslashes and forward slashes', () => {

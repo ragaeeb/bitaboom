@@ -25,8 +25,7 @@ import {
     trimSpaceInsideQuotes,
 } from './index';
 
-import { preformatArabicText } from './preformat';
-import { preformatArabicTextBuffer, preformatArabicTextConcat } from './preformat-core';
+import { preformatArabicText, preformatArabicTextBuffer, preformatArabicTextConcat } from './preformat';
 
 // ==============================================================================
 // ARABIC TEXT GENERATOR

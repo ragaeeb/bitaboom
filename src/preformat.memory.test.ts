@@ -1,7 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-
-import { preformatArabicTextBuffer, preformatArabicTextConcat } from './preformat-core';
-import { preformatArabicText } from './preformat';
+import { preformatArabicText, preformatArabicTextBuffer, preformatArabicTextConcat } from './preformat';
 
 /**
  * Build a large synthetic Arabic-ish input string for stress testing.
@@ -10,8 +8,7 @@ import { preformatArabicText } from './preformat';
  * @returns Generated string
  */
 const buildLargeArabicInput = (targetCodeUnits: number): string => {
-    const chunk =
-        'بِسْمِ  اللَّهِ ( الرَّحْمَنِ ) 127 / 11 قَالَ ... وَإِيَّاكَ  نَسْتَعِينُ ؟ ؛ , ((text))  —  ___  **  \n';
+    const chunk = 'بِسْمِ  اللَّهِ ( الرَّحْمَنِ ) 127 / 11 قَالَ ... وَإِيَّاكَ  نَسْتَعِينُ ؟ ؛ , ((text))  —  ___  **  \n';
     const repeats = Math.ceil(targetCodeUnits / chunk.length);
     return chunk.repeat(repeats).slice(0, targetCodeUnits);
 };
@@ -77,5 +74,3 @@ describe('preformatArabicText memory characteristics', () => {
         }
     });
 });
-
-
