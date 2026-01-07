@@ -440,7 +440,9 @@ class Preformatter {
             }
         }
         if (hasTrailingSpace) {
-            this.writer.push(C_SPACE);
+            if (!this.shouldSuppressSpace()) {
+                this.writer.push(C_SPACE);
+            }
             this.writer.push(C_WOW);
             this.lastCode = C_WOW;
             this.pendingSpaces = 0;
@@ -495,7 +497,7 @@ class Preformatter {
     }
 
     private shouldSuppressSpaceForSlash() {
-        // Slash logic: Don't adding space around slashes in number references (e.g. 1/2)
+        // Slash logic: Don't add space around slashes in number references (e.g. 1/2)
         if (this.code === C_SLASH) {
             // Peek next non-space
             let nextNonSpace = 0;
@@ -572,7 +574,6 @@ class Preformatter {
             this.code === C_SPACE ||
             this.code === C_NEWLINE ||
             this.code === C_CR ||
-            this.flags & F_CLOSING ||
             this.code === C_DQUOTE ||
             this.code === C_SQUOTE ||
             this.code === C_R_GUILLEMET ||
@@ -654,7 +655,9 @@ const preformatOne = (text: string) => {
  * @param text Input string or an array of strings
  * @returns Preformatted string or array of strings (matching input shape)
  */
-export const preformatArabicText = (text: string | string[]) => {
+export function preformatArabicText(text: string): string;
+export function preformatArabicText(text: string[]): string[];
+export function preformatArabicText(text: string | string[]): string | string[] {
     if (Array.isArray(text)) {
         return text.map(preformatOne);
     }
