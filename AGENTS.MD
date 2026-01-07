@@ -11,7 +11,7 @@
 
 ## Source layout
 - All runtime code lives in `src/` and is exported through `src/index.ts`.
-- `src/preformat.ts` is the public preformatting entry point. Implementation/benchmark variants live in `src/preformat-core.ts` and are **not** exported from `src/index.ts`.
+- `src/preformat.ts` is the public preformatting entry point.
 - When you add or rename functions, update the tables in `README.md` so users can discover them easily.
 - Tests sit alongside the modules in `src/*.test.ts` and use Bun's test runner. New functionality should come with matching tests.
 
