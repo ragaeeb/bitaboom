@@ -42,6 +42,10 @@ const plain = removeMarkdownFormatting('**Bold** _italic_ [link](https://example
 console.log(plain); // "Bold italic link"
 ```
 
+## Demo
+
+Try the interactive demo at https://bitaboom.surge.sh to explore every exported helper with real-time formatting.
+
 ### High-performance Arabic preformatting
 
 If you need to normalize messy Arabic/OCR text at scale (spacing, punctuation, brackets, ellipses, references), use the single-pass preformatter:
