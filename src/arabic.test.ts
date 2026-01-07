@@ -308,10 +308,6 @@ describe('arabic', () => {
             expect(removeSolitaryArabicLetters('ا ئاسئله ئ شباب ب الشحر ص صفر ر ه ')).toBe(' ئاسئله شباب الشحر صفر ه ');
         });
 
-        it.skip('should remove all the lone letters', () => {
-            expect(removeSolitaryArabicLetters('ا ب ت ث ج ح خ د')).toBe(' ب ث ح د');
-        });
-
         it('should remove the lone letters', () => {
             expect(removeSolitaryArabicLetters('واحد اثنان ثلاثة')).toBe('واحد اثنان ثلاثة');
             expect(removeSolitaryArabicLetters('ا هـــــ')).toBe(' هـــــ');
