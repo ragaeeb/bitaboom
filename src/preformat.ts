@@ -98,7 +98,9 @@ const C_ELLIPSIS = 8230; // …
  * @param code UTF-16 code unit
  * @returns True if the code unit is a trim-whitespace character
  */
-const isTrimWhitespace = (code: number) => code === C_SPACE || code === C_TAB || code === C_NEWLINE || code === C_CR;
+const isTrimWhitespace = (code: number): boolean => {
+    return code === C_SPACE || code === C_TAB || code === C_NEWLINE || code === C_CR;
+};
 
 /**
  * Growable UTF-16 output buffer used by the buffer-backed preformat implementation.
@@ -118,14 +120,14 @@ class Utf16Builder {
     /**
      * Return the last written UTF-16 code unit, or 0 if empty.
      */
-    public last() {
+    public last(): number {
         return this.length > 0 ? this.buffer[this.length - 1] : 0;
     }
 
     /**
      * Return the second-to-last written UTF-16 code unit, or 0 if not available.
      */
-    public secondLast() {
+    public secondLast(): number {
         return this.length > 1 ? this.buffer[this.length - 2] : 0;
     }
 
@@ -210,25 +212,25 @@ interface PreformatWriter {
 class StringWriter implements PreformatWriter {
     public res = '';
 
-    push(code: number) {
+    push(code: number): void {
         this.res += String.fromCharCode(code);
     }
 
-    pop() {
+    pop(): void {
         if (this.res.length > 0) {
             this.res = this.res.slice(0, -1);
         }
     }
 
-    last() {
+    last(): number {
         return this.res.charCodeAt(this.res.length - 1) || 0;
     }
 
-    secondLast() {
+    secondLast(): number {
         return this.res.charCodeAt(this.res.length - 2) || 0;
     }
 
-    getResult() {
+    getResult(): string {
         return this.res.trim();
     }
 }
@@ -239,23 +241,23 @@ class StringWriter implements PreformatWriter {
 class BufferWriter implements PreformatWriter {
     constructor(private builder: Utf16Builder) {}
 
-    push(code: number) {
+    push(code: number): void {
         this.builder.push(code);
     }
 
-    pop() {
+    pop(): void {
         this.builder.pop();
     }
 
-    last() {
+    last(): number {
         return this.builder.last();
     }
 
-    secondLast() {
+    secondLast(): number {
         return this.builder.secondLast();
     }
 
-    getResult() {
+    getResult(): string {
         return this.builder.toStringTrimmed();
     }
 }
@@ -279,7 +281,7 @@ class Preformatter {
         this.len = text.length;
     }
 
-    public process() {
+    public process(): string {
         while (this.i < this.len) {
             this.code = this.text.charCodeAt(this.i);
             this.flags = CHAR_MAP[this.code];
@@ -317,7 +319,7 @@ class Preformatter {
      * Handles complex special characters logic.
      * @returns true if the loop should `continue` (skip remaining processing for this iteration).
      */
-    private handleSpecialCharacters() {
+    private handleSpecialCharacters(): boolean {
         // Newlines
         if (this.code === C_NEWLINE || this.code === C_CR) {
             return this.handleNewlines();
@@ -363,7 +365,7 @@ class Preformatter {
         return false;
     }
 
-    private handleNewlines() {
+    private handleNewlines(): boolean {
         this.pendingSpaces = 0;
         if (this.lastCode !== C_NEWLINE) {
             this.writer.push(C_NEWLINE);
@@ -382,11 +384,16 @@ class Preformatter {
         return true;
     }
 
-    private handleTransforms() {
-        this.code = this.code === C_Q_MARK ? C_AR_Q_MARK : this.code === C_SEMICOLON ? C_AR_SEMICOLON : this.code;
+    private handleTransforms(): void {
+        if (this.code === C_Q_MARK) {
+            this.code = C_AR_Q_MARK;
+        } else if (this.code === C_SEMICOLON) {
+            this.code = C_AR_SEMICOLON;
+        }
+        // Note: Comma is NOT converted to Arabic
     }
 
-    private handleCondenseColons() {
+    private handleCondenseColons(): void {
         if (this.lastCode === C_DOT || this.lastCode === C_DASH) {
             this.writer.pop();
             this.lastCode = this.writer.last();
@@ -397,7 +404,7 @@ class Preformatter {
         }
     }
 
-    private isDoubleBracket() {
+    private isDoubleBracket(): boolean {
         if (this.code === C_L_PAREN && this.text.charCodeAt(this.i + 1) === C_L_PAREN) {
             this.code = C_L_GUILLEMET;
             this.i++;
@@ -411,7 +418,7 @@ class Preformatter {
         return false;
     }
 
-    private handleEllipsis() {
+    private handleEllipsis(): boolean {
         if (this.lastCode === C_ELLIPSIS) {
             this.i++;
             return true;
@@ -426,7 +433,7 @@ class Preformatter {
         return false;
     }
 
-    private handleTrailingWow() {
+    private handleTrailingWow(): boolean {
         // Peek ahead to see if there's a space after wow
         let nextIdx = this.i + 1;
         let hasTrailingSpace = false;
@@ -440,9 +447,7 @@ class Preformatter {
             }
         }
         if (hasTrailingSpace) {
-            if (!this.shouldSuppressSpace()) {
-                this.writer.push(C_SPACE);
-            }
+            this.writer.push(C_SPACE);
             this.writer.push(C_WOW);
             this.lastCode = C_WOW;
             this.pendingSpaces = 0;
@@ -452,7 +457,7 @@ class Preformatter {
         return false;
     }
 
-    private handleRepeats() {
+    private handleRepeats(): boolean {
         if (
             (this.code === C_TATWEEL && this.lastCode === C_TATWEEL) ||
             (this.code === C_UNDERSCORE && this.lastCode === C_UNDERSCORE) ||
@@ -465,7 +470,7 @@ class Preformatter {
         return false;
     }
 
-    private handleRedundantPunctuation() {
+    private handleRedundantPunctuation(): boolean {
         if (
             (this.lastCode === C_AR_Q_MARK || this.lastCode === C_EXCLAM) &&
             (this.code === C_DOT || this.code === C_AR_COMMA)
@@ -476,9 +481,69 @@ class Preformatter {
         return false;
     }
 
-    private handlePendingSpaces() {
+    private handlePendingSpaces(): void {
         if (this.pendingSpaces > 0) {
-            if (!this.shouldSuppressSpace()) {
+            let shouldEmitSpace = true;
+
+            if (this.flags & F_NO_SPACE_BEFORE) {
+                shouldEmitSpace = false;
+            } else if (this.flags & F_PUNCT && !(this.flags & F_OPENING)) {
+                // If it's punctuation (but not opening bracket), don't put space before it
+                shouldEmitSpace = false;
+            }
+
+            if (CHAR_MAP[this.lastCode] & F_OPENING) {
+                shouldEmitSpace = false;
+            }
+
+            if (this.code === C_COLON && CHAR_MAP[this.lastCode] & F_DIGIT) {
+
+            if (CHAR_MAP[this.lastCode] & F_OPENING) {
+                shouldEmitSpace = false;
+            }
+
+            if (this.code === C_COLON && CHAR_MAP[this.lastCode] & F_DIGIT) {
+                // Time/Ayah reference case: 12:30 or 5:12
+                shouldEmitSpace = false;
+            } else if (
+                (this.code === C_Q_MARK ||
+                    this.code === C_AR_Q_MARK ||
+                    this.code === C_EXCLAM ||
+                    this.code === C_SEMICOLON ||
+                    this.code === C_AR_SEMICOLON ||
+                    this.code === C_COMMA ||
+                    this.code === C_AR_COMMA ||
+                    this.code === C_DOT) &&
+                this.lastCode !== C_DOT
+            ) {
+                shouldEmitSpace = false;
+            }
+
+            // Slash logic: Don't adding space around slashes in number references (e.g. 1/2)
+            if (shouldEmitSpace && this.code === C_SLASH) {
+                // Peek next non-space
+                let nextNonSpace = 0;
+                for (let k = this.i + 1; k < this.len; k++) {
+                    const nc = this.text.charCodeAt(k);
+                    if (nc !== C_SPACE && nc !== C_TAB && nc !== C_NEWLINE && nc !== C_CR) {
+                        nextNonSpace = nc;
+                        break;
+                    }
+                }
+                if (CHAR_MAP[this.lastCode] & F_DIGIT && CHAR_MAP[nextNonSpace] & F_DIGIT) {
+                    shouldEmitSpace = false;
+                }
+            }
+
+            // No space after slash in references (e.g. 1/ 2 -> 1/2)
+            if (shouldEmitSpace && this.lastCode === C_SLASH && this.flags & F_DIGIT) {
+                const prev = this.writer.secondLast();
+                if (prev !== 0 && CHAR_MAP[prev] & F_DIGIT) {
+                    shouldEmitSpace = false;
+                }
+            }
+
+            if (shouldEmitSpace) {
                 this.writer.push(C_SPACE);
                 this.lastCode = C_SPACE;
             }
@@ -486,45 +551,7 @@ class Preformatter {
         }
     }
 
-    private shouldSuppressSpace() {
-        if (this.flags & F_NO_SPACE_BEFORE) {
-            return true;
-        }
-        if (CHAR_MAP[this.lastCode] & F_OPENING) {
-            return true;
-        }
-        return this.shouldSuppressSpaceForSlash();
-    }
-
-    private shouldSuppressSpaceForSlash() {
-        // Slash logic: Don't add space around slashes in number references (e.g. 1/2)
-        if (this.code === C_SLASH) {
-            // Peek next non-space
-            let nextNonSpace = 0;
-            for (let k = this.i + 1; k < this.len; k++) {
-                const nc = this.text.charCodeAt(k);
-                if (nc !== C_SPACE && nc !== C_TAB && nc !== C_NEWLINE && nc !== C_CR) {
-                    nextNonSpace = nc;
-                    break;
-                }
-            }
-            if (CHAR_MAP[this.lastCode] & F_DIGIT && CHAR_MAP[nextNonSpace] & F_DIGIT) {
-                return true;
-            }
-        }
-
-        // No space after slash in references (e.g. 1/ 2 -> 1/2)
-        if (this.lastCode === C_SLASH && this.flags & F_DIGIT) {
-            const prev = this.writer.secondLast();
-            if (prev !== 0 && CHAR_MAP[prev] & F_DIGIT) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private handleMissingSpaces() {
+    private handleMissingSpaces(): void {
         const currentFlags = this.flags;
 
         // Arabic <-> Number
@@ -558,7 +585,7 @@ class Preformatter {
         }
     }
 
-    private isDigitColonDigit() {
+    private isDigitColonDigit(): boolean 
         if (this.lastCode === C_COLON && this.flags & F_DIGIT) {
             const prevCode = this.writer.secondLast();
             if (prevCode !== 0 && CHAR_MAP[prevCode] & F_DIGIT) {
@@ -566,14 +593,14 @@ class Preformatter {
             }
         }
         return false;
-    }
 
-    private isSpecialSpacing() {
+    private isSpecialSpacing(): boolean 
         return !!(
             this.flags & (F_SPACE | F_CLOSING | F_OPENING) ||
             this.code === C_SPACE ||
             this.code === C_NEWLINE ||
             this.code === C_CR ||
+            this.flags & F_CLOSING ||
             this.code === C_DQUOTE ||
             this.code === C_SQUOTE ||
             this.code === C_R_GUILLEMET ||
@@ -582,17 +609,16 @@ class Preformatter {
             ((this.lastCode === C_AR_Q_MARK || this.lastCode === C_EXCLAM) &&
                 (this.code === C_DOT || this.code === C_AR_COMMA))
         );
-    }
 }
 
 /**
  * Standard implementation using string concatenation.
  */
-const processStringConcat = (text: string) => {
+function processStringConcat(text: string): string {
     const writer = new StringWriter();
     const formatter = new Preformatter(text, writer);
     return formatter.process();
-};
+}
 
 /**
  * Preformat using a growable UTF-16 buffer to reduce intermediate allocations.
@@ -605,22 +631,23 @@ const processStringConcat = (text: string) => {
  * @param text The input Arabic text to format.
  * @returns The formatted string.
  */
-const processStringBuffer = (text: string) => {
+function processStringBuffer(text: string): string {
     // Initial guess: length +/- 10% change usually
     const builder = new Utf16Builder(text.length + 1024);
     const writer = new BufferWriter(builder);
     const formatter = new Preformatter(text, writer);
     return formatter.process();
-};
+}
+
 /**
  * Internal (non-public) variant: baseline `+=` builder.
  */
-export const preformatArabicTextConcat = (text: string) => processStringConcat(text);
+export const preformatArabicTextConcat = (text: string): string => processStringConcat(text);
 
 /**
  * Internal (non-public) variant: UTF-16 buffer builder to reduce intermediate allocations.
  */
-export const preformatArabicTextBuffer = (text: string) => processStringBuffer(text);
+export const preformatArabicTextBuffer = (text: string): string => processStringBuffer(text);
 
 /**
  * Preformat a single string.
@@ -655,9 +682,7 @@ const preformatOne = (text: string) => {
  * @param text Input string or an array of strings
  * @returns Preformatted string or array of strings (matching input shape)
  */
-export function preformatArabicText(text: string): string;
-export function preformatArabicText(text: string[]): string[];
-export function preformatArabicText(text: string | string[]): string | string[] {
+export const preformatArabicText = (text: string | string[]): string | string[] => {
     if (Array.isArray(text)) {
         return text.map(preformatOne);
     }
