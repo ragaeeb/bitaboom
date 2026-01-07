@@ -409,17 +409,17 @@ describe('preformatArabicText', () => {
                 '"I have the book! "\'I have it. \'',
             );
         });
-        ('\\');
-        '\\',
-            it('should handle the semicolons and colons', () => {
-                expect(
-                    preformatArabicText(
-                        'A string like this .Should turn into that ! But what about  ?   This one ; However ...it goes without saying.',
-                    ),
-                ).toBe(
-                    'A string like this. Should turn into that! But what about؟ This one؛ However…it goes without saying.',
-                );
-            });
+
+        it('should handle the semicolons and colons', () => {
+            expect(
+                preformatArabicText(
+                    'A string like this .Should turn into that ! But what about  ?   This one ; However ...it goes without saying.',
+                ),
+            ).toBe(
+                'A string like this. Should turn into that! But what about؟ This one؛ However…it goes without saying.',
+            );
+        });
+
         it('should not add spaces for brackets and quoted text', () => {
             expect(preformatArabicText('“This is some text!” [Something!] (Something!)')).toBe(
                 '“This is some text!” [Something!] (Something!)',
@@ -455,5 +455,11 @@ describe('preformatArabicText', () => {
         it('removes the spaces', () => {
             expect(preformatArabicText('This has    many spaces\n\nNext line')).toBe('This has many spaces\nNext line');
         });
+    });
+
+    it('should fix the waw as well as the arrow brackets', () => {
+        expect(preformatArabicText(' (( و ما أرسلنا من رسول إلا بلسان قومه لبين لهم )) ')).toBe(
+            '«وما أرسلنا من رسول إلا بلسان قومه لبين لهم»',
+        );
     });
 });
