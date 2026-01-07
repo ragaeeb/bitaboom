@@ -5,7 +5,7 @@
     "": {
       "name": "demo",
       "dependencies": {
-        "bitaboom": "^2.2.1",
+        "bitaboom": "2.2.1",
       },
       "devDependencies": {
         "@sveltejs/vite-plugin-svelte": "^6.2.3",

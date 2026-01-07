@@ -33,8 +33,9 @@ a:hover {
 
 .app-shell {
     display: grid;
-    grid-template-columns: minmax(260px, 320px) 1fr;
-    min-height: 100vh;
+    grid-template-columns: minmax(340px, 420px) 1fr;
+    height: 100vh;
+    overflow: hidden;
 }
 
 .sidebar {
@@ -44,6 +45,19 @@ a:hover {
     display: flex;
     flex-direction: column;
     gap: 32px;
+    height: 100vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+.sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
 }
 
 .sidebar h1 {
@@ -59,7 +73,7 @@ a:hover {
 }
 
 .sidebar-nav {
-    overflow-y: auto;
+    overflow-y: visible;
     padding-right: 6px;
 }
 
@@ -116,6 +130,8 @@ a:hover {
     display: flex;
     flex-direction: column;
     gap: 32px;
+    height: 100vh;
+    overflow-y: auto;
 }
 
 .eyebrow {

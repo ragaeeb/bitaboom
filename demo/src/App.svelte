@@ -52,6 +52,7 @@ import {
     removeDeathYear,
     removeMarkdownFormatting,
     removeNonIndexSignatures,
+    removeArabicPrefixes,
     removeNumbersAndDashes,
     removeRedundantPunctuation,
     removeSingleDigitReferences,
@@ -99,7 +100,7 @@ const functionGroups: FunctionGroup[] = [
             {
                 name: 'arabicNumeralToNumber',
                 description: 'Convert Arabic-Indic numerals to a JavaScript number.',
-                placeholder: 'رواية ١٢٣',
+                placeholder: '١٢٣',
                 rtl: true,
                 formatter: (input) => arabicNumeralToNumber(input),
             },
@@ -692,7 +693,7 @@ const formatResult = (result: unknown) => {
                 spacing rules that show up in manuscripts and scanned texts.
             </p>
             <p class="hero-meta">
-                Maintained by <strong>{libraryAuthor}</strong> · ESNext, Bun-native, and fully documented.
+                ESNext, Bun-native, and fully documented.
             </p>
         </section>
 
