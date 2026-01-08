@@ -569,7 +569,7 @@ class Preformatter {
 
     private isSpecialSpacing() {
         return !!(
-            this.flags & (F_SPACE | F_CLOSING | F_OPENING) ||
+            this.flags & (F_SPACE | F_CLOSING | F_OPENING | F_PUNCT) ||
             this.code === C_SPACE ||
             this.code === C_NEWLINE ||
             this.code === C_CR ||

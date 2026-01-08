@@ -243,7 +243,7 @@ describe('preformatArabicText', () => {
 
     describe('condenseColons', () => {
         it('should remove the unnecessary punctuation around the colon', () => {
-            expect(preformatArabicText('This.:. and :, and .: and :.')).toBe('This: and: , and: and:');
+            expect(preformatArabicText('This.:. and :, and .: and :.')).toBe('This: and:, and: and:');
         });
     });
 
@@ -401,6 +401,10 @@ describe('preformatArabicText', () => {
             expect(preformatArabicText('This is the first line .\nThis is the second line.')).toBe(
                 'This is the first line.\nThis is the second line.',
             );
+        });
+
+        it('should not put spaces between consecutive punctuations', () => {
+            expect(preformatArabicText('هل هذا عبث ؟!')).toBe('هل هذا عبث؟!');
         });
 
         it('should remove the extra space between the apostrophe and question mark', () => {
