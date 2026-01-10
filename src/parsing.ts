@@ -151,15 +151,29 @@ export const isBalanced = (str: string) => {
  * @throws Error when start page exceeds end page in range
  */
 export const parsePageRanges = (pageInput: string): number[] => {
-    if (pageInput.includes('-')) {
-        const [start, end] = pageInput.split('-').map(Number);
+    const parts = pageInput.split(',');
+    const result: number[] = [];
 
-        if (start > end) {
-            throw new Error('Start page cannot be greater than end page');
+    for (const part of parts) {
+        const trimmed = part.trim();
+        if (!trimmed) {
+            continue;
         }
 
-        return Array.from({ length: end - start + 1 }, (_, i) => start + i);
-    } else {
-        return pageInput.split(',').map(Number);
+        if (trimmed.includes('-')) {
+            const [start, end] = trimmed.split('-').map(Number);
+
+            if (start > end) {
+                throw new Error('Start page cannot be greater than end page');
+            }
+
+            for (let i = start; i <= end; i++) {
+                result.push(i);
+            }
+        } else {
+            result.push(Number(trimmed));
+        }
     }
+
+    return result;
 };

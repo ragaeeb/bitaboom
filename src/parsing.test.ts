@@ -258,5 +258,9 @@ describe('parsing', () => {
         it('should handle zero in ranges', () => {
             expect(parsePageRanges('0-2')).toEqual([0, 1, 2]);
         });
+
+        it('should handle chunk ranges', () => {
+            expect(parsePageRanges('5-7,9-10')).toEqual([5, 6, 7, 9, 10]);
+        });
     });
 });

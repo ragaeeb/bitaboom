@@ -153,7 +153,7 @@ All modules are exported from `src/index.ts`. Functions are grouped below by fea
 | `isJsonStructureValid` | Detect JSON-like key/value blobs that can be normalised. |
 | `splitByQuotes` | Split by spaces while keeping quoted substrings intact. |
 | `isBalanced` | Ensure quotes and brackets are balanced and properly nested. |
-| `parsePageRanges` | Expand range/list strings (`1-3,5`) into numeric arrays. |
+| `parsePageRanges` | Expand mixed range/list strings (e.g., `1-3,5,7-9`) into numeric arrays. |
 
 ### Transliteration (`src/transliteration.ts`)
 
