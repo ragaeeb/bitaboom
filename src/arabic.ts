@@ -165,3 +165,58 @@ export const replaceEnglishPunctuationWithArabic = (text: string) => {
         .replace(/(;|؛)\s*(\1\s*)*/g, '؛')
         .replace(/,|-،/g, '،');
 };
+
+/**
+ * Counts words in text by splitting on whitespace.
+ * Works for both Arabic and English text.
+ *
+ * @param text - The text to count words in
+ * @returns Number of words in the text
+ */
+
+export const countWords = (text: string) => {
+    if (!text) {
+        return 0;
+    }
+    return text.trim().split(/\s+/).filter(Boolean).length;
+};
+
+/**
+ * Arabic-aware token estimation
+ * Categories:
+ * - Arabic diacritics (tashkeel U+064B-U+0652, U+0670): ~1 diacritic/token
+ * - Tatweel (U+0640): ~1 per token (elongation character)
+ * - Arabic-Indic numerals (U+0660-U+0669, U+06F0-U+06F9): ~4 chars/token
+ * - Arabic base characters: ~2.5 chars/token
+ * - Latin/punctuation/whitespace: ~4 chars/token
+ */
+
+export const estimateTokenCount = (text: string) => {
+    if (!text) {
+        return 0;
+    }
+
+    // Arabic diacritics (tashkeel)
+    const diacriticCount = (text.match(/[\u064B-\u0652\u0670]/g) || []).length;
+
+    // Tatweel (kashida elongation)
+    const tatweelCount = (text.match(/\u0640/g) || []).length;
+
+    // Arabic-Indic numerals (both forms)
+    const arabicNumeralCount = (text.match(/[\u0660-\u0669\u06F0-\u06F9]/g) || []).length;
+
+    // Arabic base characters (excluding diacritics, tatweel, numerals)
+    const arabicBaseCount = (text.match(/[\u0600-\u063F\u0641-\u064A\u0653-\u065F\u0671-\u06EF]/g) || []).length;
+
+    // Everything else (Latin, punctuation, Western numerals, whitespace)
+    const otherCount = text.length - diacriticCount - tatweelCount - arabicNumeralCount - arabicBaseCount;
+
+    // Estimate tokens
+    return Math.ceil(
+        diacriticCount + // ~1 token each
+            tatweelCount + // ~1 token each
+            arabicNumeralCount / 4 + // ~4 chars/token
+            arabicBaseCount / 2.5 + // ~2.5 chars/token
+            otherCount / 4,
+    );
+};

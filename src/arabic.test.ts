@@ -5,6 +5,8 @@ import {
     arabicNumeralToNumber,
     cleanExtremeArabicUnderscores,
     convertUrduSymbolsToArabic,
+    countWords,
+    estimateTokenCount,
     fixTrailingWow,
     getArabicScore,
     removeNonIndexSignatures,
@@ -13,321 +15,409 @@ import {
     replaceEnglishPunctuationWithArabic,
 } from './arabic';
 
-describe('arabic', () => {
-    describe('arabicNumeralToNumber', () => {
-        it('should convert single Arabic-Indic digits', () => {
-            expect(arabicNumeralToNumber('٠')).toBe(0);
-            expect(arabicNumeralToNumber('١')).toBe(1);
-            expect(arabicNumeralToNumber('٢')).toBe(2);
-            expect(arabicNumeralToNumber('٣')).toBe(3);
-            expect(arabicNumeralToNumber('٤')).toBe(4);
-            expect(arabicNumeralToNumber('٥')).toBe(5);
-            expect(arabicNumeralToNumber('٦')).toBe(6);
-            expect(arabicNumeralToNumber('٧')).toBe(7);
-            expect(arabicNumeralToNumber('٨')).toBe(8);
-            expect(arabicNumeralToNumber('٩')).toBe(9);
-        });
-
-        it('should convert multi-digit Arabic-Indic numbers', () => {
-            expect(arabicNumeralToNumber('١٠')).toBe(10);
-            expect(arabicNumeralToNumber('١٢٣')).toBe(123);
-            expect(arabicNumeralToNumber('٤٥٦٧')).toBe(4567);
-            expect(arabicNumeralToNumber('٩٨٧٦٥٤٣٢١٠')).toBe(9876543210);
-        });
-
-        it('should handle strings with leading zeros', () => {
-            expect(arabicNumeralToNumber('٠٠١')).toBe(1);
-            expect(arabicNumeralToNumber('٠٥٠')).toBe(50);
-            expect(arabicNumeralToNumber('٠٠٠')).toBe(0);
-        });
-
-        it('should handle edge cases', () => {
-            expect(arabicNumeralToNumber('٠')).toBe(0);
-            expect(arabicNumeralToNumber('   ١٢٣   ')).toBe(123); // whitespace
-        });
-
-        it('should handle very large numbers', () => {
-            const largeArabicIndic = '١٢٣٤٥٦٧٨٩٠١٢٣٤٥';
-            const expected = 123456789012345;
-            expect(arabicNumeralToNumber(largeArabicIndic)).toBe(expected);
-        });
-
-        it('should be consistent with manual conversion', () => {
-            // Manual verification of the Unicode arithmetic
-            const arabicIndic = '٩٨٧';
-            const manual = 9 * 100 + 8 * 10 + 7 * 1;
-            expect(arabicNumeralToNumber(arabicIndic)).toBe(manual);
-            expect(arabicNumeralToNumber(arabicIndic)).toBe(987);
-        });
+describe('arabicNumeralToNumber', () => {
+    it('should convert single Arabic-Indic digits', () => {
+        expect(arabicNumeralToNumber('٠')).toBe(0);
+        expect(arabicNumeralToNumber('١')).toBe(1);
+        expect(arabicNumeralToNumber('٢')).toBe(2);
+        expect(arabicNumeralToNumber('٣')).toBe(3);
+        expect(arabicNumeralToNumber('٤')).toBe(4);
+        expect(arabicNumeralToNumber('٥')).toBe(5);
+        expect(arabicNumeralToNumber('٦')).toBe(6);
+        expect(arabicNumeralToNumber('٧')).toBe(7);
+        expect(arabicNumeralToNumber('٨')).toBe(8);
+        expect(arabicNumeralToNumber('٩')).toBe(9);
     });
 
-    describe('cleanExtremeArabicUnderscores', () => {
-        it('should not affect hijri dates', () => {
-            expect(cleanExtremeArabicUnderscores('اهـ')).toBe('اهـ');
-            expect(cleanExtremeArabicUnderscores(`علينا فنتبع الهوى" اهـ.    حرر في: 1435/3/29 هـ`)).toBe(
-                `علينا فنتبع الهوى" اهـ.    حرر في: 1435/3/29 هـ`,
-            );
-        });
-
-        it('should get rid of the ending character', () => {
-            expect(cleanExtremeArabicUnderscores('ـThis is a textـ')).toBe('This is a text');
-        });
-
-        it('should not affect the Hijri year', () => {
-            expect(cleanExtremeArabicUnderscores('ـAnother example with 1422هـ')).toBe('Another example with 1422هـ');
-        });
-
-        it('should process the multiline text', () => {
-            expect(cleanExtremeArabicUnderscores('ـA multiline stringـ\nـwith several linesـ\n1423هـ')).toBe(
-                'A multiline string\nwith several lines\n1423هـ',
-            );
-        });
-
-        it('should not affect years that are in the middle of the sentence', () => {
-            expect(
-                cleanExtremeArabicUnderscores(
-                    'This is a normal line\nـAnd this one starts with the characterـ\nAnd 1424هـ remains unchanged',
-                ),
-            ).toBe('This is a normal line\nAnd this one starts with the character\nAnd 1424هـ remains unchanged');
-        });
+    it('should convert multi-digit Arabic-Indic numbers', () => {
+        expect(arabicNumeralToNumber('١٠')).toBe(10);
+        expect(arabicNumeralToNumber('١٢٣')).toBe(123);
+        expect(arabicNumeralToNumber('٤٥٦٧')).toBe(4567);
+        expect(arabicNumeralToNumber('٩٨٧٦٥٤٣٢١٠')).toBe(9876543210);
     });
 
-    describe('convertUrduSymbolsToArabic', () => {
-        it('should convert the text', () => {
-            expect(convertUrduSymbolsToArabic('ھذا كذب موضوع باتفاق أھل العلم بالحدیث، فیجب تكذیبھ ورده')).toEqual(
-                'هذا كذب موضوع باتفاق أهل العلم بالحديث، فيجب تكذيبه ورده',
-            );
-        });
+    it('should handle strings with leading zeros', () => {
+        expect(arabicNumeralToNumber('٠٠١')).toBe(1);
+        expect(arabicNumeralToNumber('٠٥٠')).toBe(50);
+        expect(arabicNumeralToNumber('٠٠٠')).toBe(0);
     });
 
-    describe('fixTrailingWow', () => {
-        it('should fix trailing wow', () => {
-            expect(fixTrailingWow('السلام عليكم و رحمة الله وبركاته الطرخون او ورق و')).toBe(
-                'السلام عليكم ورحمة الله وبركاته الطرخون او ورق و',
-            );
-        });
-
-        it('should fix another trailing wow', () => {
-            expect(fixTrailingWow('الأشاعرة لكنهما ما قصدوا مخالفة الكتاب و السنة و إنما وهموا و ظنوا')).toBe(
-                'الأشاعرة لكنهما ما قصدوا مخالفة الكتاب والسنة وإنما وهموا وظنوا',
-            );
-        });
-
-        it('should handle empty string', () => {
-            expect(fixTrailingWow('')).toBe('');
-        });
-
-        it('should handle text with no trailing wow', () => {
-            expect(fixTrailingWow('السلام عليكم ورحمة الله')).toBe('السلام عليكم ورحمة الله');
-        });
-
-        it('should not change text with diacritics on wow', () => {
-            // The pattern only matches ' و ' (plain wow), not 'وَ' with diacritics
-            expect(fixTrailingWow('الْكِتَابُ وَ السُّنَّةُ')).toBe('الْكِتَابُ وَ السُّنَّةُ');
-        });
-
-        it('should fix multiple occurrences of trailing wow', () => {
-            expect(fixTrailingWow('أ و ب و ج و د')).toBe('أ وب وج ود');
-        });
+    it('should handle edge cases', () => {
+        expect(arabicNumeralToNumber('٠')).toBe(0);
+        expect(arabicNumeralToNumber('   ١٢٣   ')).toBe(123); // whitespace
     });
 
-    describe('getArabicScore', () => {
-        it('returns 0 for empty string', () => {
-            expect(getArabicScore('')).toBe(0);
-        });
-
-        it('returns 0 for null/undefined', () => {
-            expect(getArabicScore(null as any)).toBe(0);
-            expect(getArabicScore(undefined as any)).toBe(0);
-        });
-
-        it('returns 1 for pure Arabic text', () => {
-            expect(getArabicScore('مرحبا')).toBe(1);
-            expect(getArabicScore('السلام عليكم')).toBe(1);
-            expect(getArabicScore('العربية')).toBe(1);
-        });
-
-        it('returns 0 for pure English text', () => {
-            expect(getArabicScore('hello')).toBe(0);
-            expect(getArabicScore('hello world')).toBe(0);
-            expect(getArabicScore('English text')).toBe(0);
-        });
-
-        it('returns 0 for text with only whitespace', () => {
-            expect(getArabicScore('   ')).toBe(0);
-            expect(getArabicScore(' \t\n ')).toBe(0);
-        });
-
-        it('returns 0 for text with only numbers', () => {
-            expect(getArabicScore('123')).toBe(0);
-            expect(getArabicScore('456 789')).toBe(0);
-        });
-
-        it('calculates correct ratio for mixed Arabic/English', () => {
-            // "hello مرحبا" - 5 English + 5 Arabic = 5/10 = 0.5
-            expect(getArabicScore('hello مرحبا')).toBe(0.5);
-        });
-
-        it('ignores whitespace in ratio calculation', () => {
-            // "a   ب" should be 1 English + 1 Arabic = 1/2 = 0.5 (spaces ignored)
-            expect(getArabicScore('a   ب')).toBe(0.5);
-        });
-
-        it('ignores numbers in ratio calculation', () => {
-            // "a123ب456" should be 1 English + 1 Arabic = 1/2 = 0.5 (numbers ignored)
-            expect(getArabicScore('a123ب456')).toBe(0.5);
-        });
-
-        it('handles Arabic with numbers and spaces', () => {
-            // "مرحبا 123" should be 5 Arabic characters out of 5 total = 1.0
-            expect(getArabicScore('مرحبا 123')).toBe(1);
-        });
-
-        it('handles English with numbers and spaces', () => {
-            // "hello 123" should be 5 English characters out of 5 total = 0.0
-            expect(getArabicScore('hello 123')).toBe(0);
-        });
-
-        it('handles text with only punctuation', () => {
-            expect(getArabicScore('!@#$%')).toBe(0);
-        });
-
-        it('handles different Arabic Unicode ranges', () => {
-            // Test different Arabic character ranges
-            expect(getArabicScore('ا')).toBe(1); // Basic Arabic
-            expect(getArabicScore('ء')).toBe(1); // Arabic supplement
-            // Note: Extended ranges would need actual characters from those ranges to test
-        });
+    it('should handle very large numbers', () => {
+        const largeArabicIndic = '١٢٣٤٥٦٧٨٩٠١٢٣٤٥';
+        const expected = 123456789012345;
+        expect(arabicNumeralToNumber(largeArabicIndic)).toBe(expected);
     });
 
-    describe('addSpaceBetweenArabicTextAndNumbers', () => {
-        it('should insert a space between Arabic text and number', () => {
-            expect(addSpaceBetweenArabicTextAndNumbers('الآية37')).toBe('الآية 37');
-        });
+    it('should be consistent with manual conversion', () => {
+        // Manual verification of the Unicode arithmetic
+        const arabicIndic = '٩٨٧';
+        const manual = 9 * 100 + 8 * 10 + 7 * 1;
+        expect(arabicNumeralToNumber(arabicIndic)).toBe(manual);
+        expect(arabicNumeralToNumber(arabicIndic)).toBe(987);
+    });
+});
 
-        it('should insert a space between Arabic text and number in a sentence', () => {
-            expect(addSpaceBetweenArabicTextAndNumbers('قال29 وأجاب43')).toBe('قال 29 وأجاب 43');
-        });
-
-        it('should not insert space between Arabic text and non-number characters', () => {
-            expect(addSpaceBetweenArabicTextAndNumbers('الآية: ثلاثون وسبعة')).toBe('الآية: ثلاثون وسبعة');
-        });
-
-        it('should handle a string with no Arabic text and number', () => {
-            expect(addSpaceBetweenArabicTextAndNumbers('Hello World123')).toBe('Hello World123');
-        });
-
-        it('should handle empty string', () => {
-            expect(addSpaceBetweenArabicTextAndNumbers('')).toBe('');
-        });
-
-        it('should handle text with diacritics before numbers', () => {
-            expect(addSpaceBetweenArabicTextAndNumbers('الآيَةُ37')).toBe('الآيَةُ 37');
-        });
-
-        it('should handle multiple Arabic-number transitions', () => {
-            expect(addSpaceBetweenArabicTextAndNumbers('سورة1 آية2 جزء3')).toBe('سورة 1 آية 2 جزء 3');
-        });
-
-        it('should already have space - no change', () => {
-            expect(addSpaceBetweenArabicTextAndNumbers('الآية 37')).toBe('الآية 37');
-        });
+describe('cleanExtremeArabicUnderscores', () => {
+    it('should not affect hijri dates', () => {
+        expect(cleanExtremeArabicUnderscores('اهـ')).toBe('اهـ');
+        expect(cleanExtremeArabicUnderscores(`علينا فنتبع الهوى" اهـ.    حرر في: 1435/3/29 هـ`)).toBe(
+            `علينا فنتبع الهوى" اهـ.    حرر في: 1435/3/29 هـ`,
+        );
     });
 
-    describe('removeNonIndexSignatures', () => {
-        it('should not remove numbers that are more than 1 digit', () => {
-            expect(removeNonIndexSignatures('وهب  وقال   لوحه 121 الجرح')).toEqual('وهب  وقال   لوحه 121 الجرح');
-        });
-
-        it('should remove 1 digit numbers in between Arabic texts', () => {
-            expect(removeNonIndexSignatures('الورقه 3 المصدر')).toEqual('الورقه المصدر');
-        });
-
-        it('should not remove indexes', () => {
-            expect(removeNonIndexSignatures('123 - الرقم')).toEqual('123 - الرقم');
-        });
-
-        it('should remove consecutive numbers', () => {
-            expect(removeNonIndexSignatures('سنه 695 6 واكثر')).toEqual('سنه   واكثر');
-        });
-
-        it('should remove three consecutive numbers', () => {
-            expect(removeNonIndexSignatures('معجم الشيوخ الورقه 35 69 2 الذهبي معجم الشيوخ')).toEqual(
-                'معجم الشيوخ الورقه   الذهبي معجم الشيوخ',
-            );
-        });
-
-        it('should not remove numbers', () => {
-            expect(removeNonIndexSignatures('معجم الشيوخ الورقه 32 الذهبي معجم الشيوخ')).toEqual(
-                'معجم الشيوخ الورقه 32 الذهبي معجم الشيوخ',
-            );
-        });
-
-        it('should remove the series of numbers at end of the string', () => {
-            expect(removeNonIndexSignatures('الورقه 175 171')).toEqual('الورقه  ');
-        });
-
-        it('should remove the dash between the words but not the number', () => {
-            expect(removeNonIndexSignatures('123 - السنن - السنن 5')).toBe('123 - السنن   السنن 5');
-        });
-
-        it('should remove the dash', () => {
-            expect(removeNonIndexSignatures('السنن - السنن')).toBe('السنن   السنن');
-            expect(removeNonIndexSignatures('123- السنن -السنن 5')).toBe('123- السنن  السنن 5');
-            expect(removeNonIndexSignatures('Some-Text With- Dashes-')).toBe('Some Text With  Dashes ');
-            expect(removeNonIndexSignatures('العمل - في المكتب 3 أيام')).toBe('العمل   في المكتب أيام');
-        });
-
-        it('should be a no-op', () => {
-            expect(removeNonIndexSignatures('No Dashes Here')).toBe('No Dashes Here');
-            expect(removeNonIndexSignatures('123 - الرقم')).toBe('123 - الرقم');
-            expect(removeNonIndexSignatures('الكتاب 1001 ليلة')).toBe('الكتاب 1001 ليلة');
-        });
-
-        it('should not touch the index', () => {
-            expect(removeNonIndexSignatures('123 -')).toBe('123 -');
-            expect(removeNonIndexSignatures('123 -')).toBe('123 -');
-        });
-
-        it('should remove number in the middle', () => {
-            expect(removeNonIndexSignatures('اكتب 4 الرقم')).toBe('اكتب الرقم');
-            expect(removeNonIndexSignatures('سنه 695 6 واكثر')).toBe('سنه   واكثر');
-            expect(removeNonIndexSignatures('صوتي في اذنه 8 1 الذهبي')).toBe('صوتي في اذنه   الذهبي');
-            expect(
-                removeNonIndexSignatures('محمد بن وريده البغدادي الحنبلي شيخ المستنصريه 599 697 2 وقد هممت بالرحله'),
-            ).toBe('محمد بن وريده البغدادي الحنبلي شيخ المستنصريه   وقد هممت بالرحله');
-        });
-
-        it('should remove the leading dash', () => {
-            expect(removeNonIndexSignatures('-Leading Dash')).toBe(' Leading Dash');
-        });
+    it('should get rid of the ending character', () => {
+        expect(cleanExtremeArabicUnderscores('ـThis is a textـ')).toBe('This is a text');
     });
 
-    describe('removeSolitaryArabicLetters', () => {
-        it('should not remove the lone ha since we want to keep it for hijri years', () => {
-            expect(removeSolitaryArabicLetters('ا ئاسئله ئ شباب ب الشحر ص صفر ر ه ')).toBe(' ئاسئله شباب الشحر صفر ه ');
-        });
-
-        it('should remove the lone letters', () => {
-            expect(removeSolitaryArabicLetters('واحد اثنان ثلاثة')).toBe('واحد اثنان ثلاثة');
-            expect(removeSolitaryArabicLetters('ا هـــــ')).toBe(' هـــــ');
-            expect(removeSolitaryArabicLetters('ب ا الكلمات ت')).toBe(' ا الكلمات ');
-        });
-
-        it('should be a no-op', () => {
-            expect(removeSolitaryArabicLetters('لا شيء هنا')).toBe('لا شيء هنا');
-        });
+    it('should not affect the Hijri year', () => {
+        expect(cleanExtremeArabicUnderscores('ـAnother example with 1422هـ')).toBe('Another example with 1422هـ');
     });
 
-    describe('removeSingularCodes', () => {
-        it('should remove the single letters in brackets', () => {
-            expect(removeSingularCodes('A B [س] C')).toEqual('A B  C');
-        });
+    it('should process the multiline text', () => {
+        expect(cleanExtremeArabicUnderscores('ـA multiline stringـ\nـwith several linesـ\n1423هـ')).toBe(
+            'A multiline string\nwith several lines\n1423هـ',
+        );
     });
 
-    describe('replaceEnglishPunctuationWithArabic', () => {
-        it('should replace english question mark and semicolon with Arabic ones', () => {
-            expect(replaceEnglishPunctuationWithArabic('This; and, that?')).toEqual('This؛and، that؟');
-        });
+    it('should not affect years that are in the middle of the sentence', () => {
+        expect(
+            cleanExtremeArabicUnderscores(
+                'This is a normal line\nـAnd this one starts with the characterـ\nAnd 1424هـ remains unchanged',
+            ),
+        ).toBe('This is a normal line\nAnd this one starts with the character\nAnd 1424هـ remains unchanged');
+    });
+});
+
+describe('convertUrduSymbolsToArabic', () => {
+    it('should convert the text', () => {
+        expect(convertUrduSymbolsToArabic('ھذا كذب موضوع باتفاق أھل العلم بالحدیث، فیجب تكذیبھ ورده')).toEqual(
+            'هذا كذب موضوع باتفاق أهل العلم بالحديث، فيجب تكذيبه ورده',
+        );
+    });
+});
+
+describe('fixTrailingWow', () => {
+    it('should fix trailing wow', () => {
+        expect(fixTrailingWow('السلام عليكم و رحمة الله وبركاته الطرخون او ورق و')).toBe(
+            'السلام عليكم ورحمة الله وبركاته الطرخون او ورق و',
+        );
+    });
+
+    it('should fix another trailing wow', () => {
+        expect(fixTrailingWow('الأشاعرة لكنهما ما قصدوا مخالفة الكتاب و السنة و إنما وهموا و ظنوا')).toBe(
+            'الأشاعرة لكنهما ما قصدوا مخالفة الكتاب والسنة وإنما وهموا وظنوا',
+        );
+    });
+
+    it('should handle empty string', () => {
+        expect(fixTrailingWow('')).toBe('');
+    });
+
+    it('should handle text with no trailing wow', () => {
+        expect(fixTrailingWow('السلام عليكم ورحمة الله')).toBe('السلام عليكم ورحمة الله');
+    });
+
+    it('should not change text with diacritics on wow', () => {
+        // The pattern only matches ' و ' (plain wow), not 'وَ' with diacritics
+        expect(fixTrailingWow('الْكِتَابُ وَ السُّنَّةُ')).toBe('الْكِتَابُ وَ السُّنَّةُ');
+    });
+
+    it('should fix multiple occurrences of trailing wow', () => {
+        expect(fixTrailingWow('أ و ب و ج و د')).toBe('أ وب وج ود');
+    });
+});
+
+describe('getArabicScore', () => {
+    it('returns 0 for empty string', () => {
+        expect(getArabicScore('')).toBe(0);
+    });
+
+    it('returns 0 for null/undefined', () => {
+        expect(getArabicScore(null as any)).toBe(0);
+        expect(getArabicScore(undefined as any)).toBe(0);
+    });
+
+    it('returns 1 for pure Arabic text', () => {
+        expect(getArabicScore('مرحبا')).toBe(1);
+        expect(getArabicScore('السلام عليكم')).toBe(1);
+        expect(getArabicScore('العربية')).toBe(1);
+    });
+
+    it('returns 0 for pure English text', () => {
+        expect(getArabicScore('hello')).toBe(0);
+        expect(getArabicScore('hello world')).toBe(0);
+        expect(getArabicScore('English text')).toBe(0);
+    });
+
+    it('returns 0 for text with only whitespace', () => {
+        expect(getArabicScore('   ')).toBe(0);
+        expect(getArabicScore(' \t\n ')).toBe(0);
+    });
+
+    it('returns 0 for text with only numbers', () => {
+        expect(getArabicScore('123')).toBe(0);
+        expect(getArabicScore('456 789')).toBe(0);
+    });
+
+    it('calculates correct ratio for mixed Arabic/English', () => {
+        // "hello مرحبا" - 5 English + 5 Arabic = 5/10 = 0.5
+        expect(getArabicScore('hello مرحبا')).toBe(0.5);
+    });
+
+    it('ignores whitespace in ratio calculation', () => {
+        // "a   ب" should be 1 English + 1 Arabic = 1/2 = 0.5 (spaces ignored)
+        expect(getArabicScore('a   ب')).toBe(0.5);
+    });
+
+    it('ignores numbers in ratio calculation', () => {
+        // "a123ب456" should be 1 English + 1 Arabic = 1/2 = 0.5 (numbers ignored)
+        expect(getArabicScore('a123ب456')).toBe(0.5);
+    });
+
+    it('handles Arabic with numbers and spaces', () => {
+        // "مرحبا 123" should be 5 Arabic characters out of 5 total = 1.0
+        expect(getArabicScore('مرحبا 123')).toBe(1);
+    });
+
+    it('handles English with numbers and spaces', () => {
+        // "hello 123" should be 5 English characters out of 5 total = 0.0
+        expect(getArabicScore('hello 123')).toBe(0);
+    });
+
+    it('handles text with only punctuation', () => {
+        expect(getArabicScore('!@#$%')).toBe(0);
+    });
+
+    it('handles different Arabic Unicode ranges', () => {
+        // Test different Arabic character ranges
+        expect(getArabicScore('ا')).toBe(1); // Basic Arabic
+        expect(getArabicScore('ء')).toBe(1); // Arabic supplement
+        // Note: Extended ranges would need actual characters from those ranges to test
+    });
+});
+
+describe('addSpaceBetweenArabicTextAndNumbers', () => {
+    it('should insert a space between Arabic text and number', () => {
+        expect(addSpaceBetweenArabicTextAndNumbers('الآية37')).toBe('الآية 37');
+    });
+
+    it('should insert a space between Arabic text and number in a sentence', () => {
+        expect(addSpaceBetweenArabicTextAndNumbers('قال29 وأجاب43')).toBe('قال 29 وأجاب 43');
+    });
+
+    it('should not insert space between Arabic text and non-number characters', () => {
+        expect(addSpaceBetweenArabicTextAndNumbers('الآية: ثلاثون وسبعة')).toBe('الآية: ثلاثون وسبعة');
+    });
+
+    it('should handle a string with no Arabic text and number', () => {
+        expect(addSpaceBetweenArabicTextAndNumbers('Hello World123')).toBe('Hello World123');
+    });
+
+    it('should handle empty string', () => {
+        expect(addSpaceBetweenArabicTextAndNumbers('')).toBe('');
+    });
+
+    it('should handle text with diacritics before numbers', () => {
+        expect(addSpaceBetweenArabicTextAndNumbers('الآيَةُ37')).toBe('الآيَةُ 37');
+    });
+
+    it('should handle multiple Arabic-number transitions', () => {
+        expect(addSpaceBetweenArabicTextAndNumbers('سورة1 آية2 جزء3')).toBe('سورة 1 آية 2 جزء 3');
+    });
+
+    it('should already have space - no change', () => {
+        expect(addSpaceBetweenArabicTextAndNumbers('الآية 37')).toBe('الآية 37');
+    });
+});
+
+describe('removeNonIndexSignatures', () => {
+    it('should not remove numbers that are more than 1 digit', () => {
+        expect(removeNonIndexSignatures('وهب  وقال   لوحه 121 الجرح')).toEqual('وهب  وقال   لوحه 121 الجرح');
+    });
+
+    it('should remove 1 digit numbers in between Arabic texts', () => {
+        expect(removeNonIndexSignatures('الورقه 3 المصدر')).toEqual('الورقه المصدر');
+    });
+
+    it('should not remove indexes', () => {
+        expect(removeNonIndexSignatures('123 - الرقم')).toEqual('123 - الرقم');
+    });
+
+    it('should remove consecutive numbers', () => {
+        expect(removeNonIndexSignatures('سنه 695 6 واكثر')).toEqual('سنه   واكثر');
+    });
+
+    it('should remove three consecutive numbers', () => {
+        expect(removeNonIndexSignatures('معجم الشيوخ الورقه 35 69 2 الذهبي معجم الشيوخ')).toEqual(
+            'معجم الشيوخ الورقه   الذهبي معجم الشيوخ',
+        );
+    });
+
+    it('should not remove numbers', () => {
+        expect(removeNonIndexSignatures('معجم الشيوخ الورقه 32 الذهبي معجم الشيوخ')).toEqual(
+            'معجم الشيوخ الورقه 32 الذهبي معجم الشيوخ',
+        );
+    });
+
+    it('should remove the series of numbers at end of the string', () => {
+        expect(removeNonIndexSignatures('الورقه 175 171')).toEqual('الورقه  ');
+    });
+
+    it('should remove the dash between the words but not the number', () => {
+        expect(removeNonIndexSignatures('123 - السنن - السنن 5')).toBe('123 - السنن   السنن 5');
+    });
+
+    it('should remove the dash', () => {
+        expect(removeNonIndexSignatures('السنن - السنن')).toBe('السنن   السنن');
+        expect(removeNonIndexSignatures('123- السنن -السنن 5')).toBe('123- السنن  السنن 5');
+        expect(removeNonIndexSignatures('Some-Text With- Dashes-')).toBe('Some Text With  Dashes ');
+        expect(removeNonIndexSignatures('العمل - في المكتب 3 أيام')).toBe('العمل   في المكتب أيام');
+    });
+
+    it('should be a no-op', () => {
+        expect(removeNonIndexSignatures('No Dashes Here')).toBe('No Dashes Here');
+        expect(removeNonIndexSignatures('123 - الرقم')).toBe('123 - الرقم');
+        expect(removeNonIndexSignatures('الكتاب 1001 ليلة')).toBe('الكتاب 1001 ليلة');
+    });
+
+    it('should not touch the index', () => {
+        expect(removeNonIndexSignatures('123 -')).toBe('123 -');
+        expect(removeNonIndexSignatures('123 -')).toBe('123 -');
+    });
+
+    it('should remove number in the middle', () => {
+        expect(removeNonIndexSignatures('اكتب 4 الرقم')).toBe('اكتب الرقم');
+        expect(removeNonIndexSignatures('سنه 695 6 واكثر')).toBe('سنه   واكثر');
+        expect(removeNonIndexSignatures('صوتي في اذنه 8 1 الذهبي')).toBe('صوتي في اذنه   الذهبي');
+        expect(
+            removeNonIndexSignatures('محمد بن وريده البغدادي الحنبلي شيخ المستنصريه 599 697 2 وقد هممت بالرحله'),
+        ).toBe('محمد بن وريده البغدادي الحنبلي شيخ المستنصريه   وقد هممت بالرحله');
+    });
+
+    it('should remove the leading dash', () => {
+        expect(removeNonIndexSignatures('-Leading Dash')).toBe(' Leading Dash');
+    });
+});
+
+describe('removeSolitaryArabicLetters', () => {
+    it('should not remove the lone ha since we want to keep it for hijri years', () => {
+        expect(removeSolitaryArabicLetters('ا ئاسئله ئ شباب ب الشحر ص صفر ر ه ')).toBe(' ئاسئله شباب الشحر صفر ه ');
+    });
+
+    it('should remove the lone letters', () => {
+        expect(removeSolitaryArabicLetters('واحد اثنان ثلاثة')).toBe('واحد اثنان ثلاثة');
+        expect(removeSolitaryArabicLetters('ا هـــــ')).toBe(' هـــــ');
+        expect(removeSolitaryArabicLetters('ب ا الكلمات ت')).toBe(' ا الكلمات ');
+    });
+
+    it('should be a no-op', () => {
+        expect(removeSolitaryArabicLetters('لا شيء هنا')).toBe('لا شيء هنا');
+    });
+});
+
+describe('removeSingularCodes', () => {
+    it('should remove the single letters in brackets', () => {
+        expect(removeSingularCodes('A B [س] C')).toEqual('A B  C');
+    });
+});
+
+describe('replaceEnglishPunctuationWithArabic', () => {
+    it('should replace english question mark and semicolon with Arabic ones', () => {
+        expect(replaceEnglishPunctuationWithArabic('This; and, that?')).toEqual('This؛and، that؟');
+    });
+});
+
+describe('countWords', () => {
+    it('should return 0 for empty string', () => {
+        expect(countWords('')).toBe(0);
+    });
+
+    it('should return 0 for whitespace-only string', () => {
+        expect(countWords('   \n\t  ')).toBe(0);
+    });
+
+    it('should count English words correctly', () => {
+        expect(countWords('hello world')).toBe(2);
+        expect(countWords('one two three four five')).toBe(5);
+    });
+
+    it('should count Arabic words correctly', () => {
+        expect(countWords('بسم الله الرحمن الرحيم')).toBe(4);
+        expect(countWords('السلام عليكم')).toBe(2);
+    });
+
+    it('should handle mixed whitespace', () => {
+        expect(countWords('word1  word2\nword3\t\tword4')).toBe(4);
+    });
+
+    it('should trim leading and trailing whitespace', () => {
+        expect(countWords('  hello world  ')).toBe(2);
+    });
+});
+
+describe('estimateTokenCount', () => {
+    it('should estimate tokens for plain English text', async () => {
+        // ~4 chars per token for Latin text
+        const result = estimateTokenCount('Hello world');
+        expect(result).toBeGreaterThan(0);
+        expect(result).toBe(Math.ceil(11 / 4)); // 3 tokens
+    });
+
+    it('should estimate tokens for Arabic base characters', async () => {
+        // Arabic base: ~2.5 chars/token
+        // "السلام عليكم" = 11 Arabic chars + 1 space
+        const text = 'السلام عليكم';
+        const result = estimateTokenCount(text);
+        // 11 Arabic base chars / 2.5 + 1 space / 4 ≈ 5
+        expect(result).toBeGreaterThanOrEqual(4);
+        expect(result).toBeLessThanOrEqual(6);
+    });
+
+    it('should count Arabic diacritics separately', async () => {
+        // With diacritics: each counts as ~1 token
+        const withDiacritics = 'بِسْمِ اللَّهِ';
+        const withoutDiacritics = 'بسم الله';
+
+        const tokensWith = estimateTokenCount(withDiacritics);
+        const tokensWithout = estimateTokenCount(withoutDiacritics);
+
+        // Diacritized version should have more tokens
+        expect(tokensWith).toBeGreaterThan(tokensWithout);
+    });
+
+    it('should count tatweel characters', async () => {
+        // Tatweel: ~1 per token
+        const withTatweel = 'الـلـه';
+        const withoutTatweel = 'الله';
+
+        const tokensWith = estimateTokenCount(withTatweel);
+        const tokensWithout = estimateTokenCount(withoutTatweel);
+
+        // Tatweel version should have 2 extra tokens
+        expect(tokensWith).toBeGreaterThan(tokensWithout);
+    });
+
+    it('should handle Arabic-Indic numerals', async () => {
+        // Arabic-Indic numerals: ~4 chars/token (same as Latin)
+        const arabicNumerals = '١٢٣٤٥٦٧٨';
+        const result = estimateTokenCount(arabicNumerals);
+        expect(result).toBe(Math.ceil(8 / 4)); // 2 tokens
+    });
+
+    it('should handle mixed content', async () => {
+        // Mix of Arabic, English, numerals
+        const mixed = 'P123 - السلام عليكم';
+        const result = estimateTokenCount(mixed);
+        expect(result).toBeGreaterThan(0);
+    });
+
+    it('should handle empty string', async () => {
+        const result = estimateTokenCount('');
+        expect(result).toBe(0);
     });
 });
