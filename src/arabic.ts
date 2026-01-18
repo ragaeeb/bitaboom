@@ -422,14 +422,18 @@ export const estimateTokenCount = (text: string, provider: LLMProvider = LLMProv
 
     // Arabic Tokens
     if (arabicBase > 0 || tatweel > 0) {
-        // Tatweel is part of Arabic flow, count it with Arabic base rate
+        // Base text tokens
         const baseTokens = (arabicBase + tatweel) / config.arabicCharsPerToken;
+        tokens += baseTokens;
 
-        // Additive overhead for diacritics
-        // Applied only to the Arabic portion
-        const diacriticCost = arabicDiacritics > 0 ? baseTokens * config.diacriticOverhead : 0;
-
-        tokens += baseTokens + diacriticCost;
+        // Diacritics are now additive per-instance rather than a global multiplier.
+        // This fixes the bug where a single diacritic inflates the cost of the entire text.
+        // Assuming fully voweled text has ~1 diacritic per char and adds ~15-20% token cost (config.diacriticOverhead).
+        // Cost per diacritic ≈ config.diacriticOverhead tokens.
+        // (e.g., 0.15 tokens per diacritic).
+        if (arabicDiacritics > 0) {
+            tokens += arabicDiacritics * config.diacriticOverhead;
+        }
     }
 
     // Latin Tokens
@@ -439,7 +443,9 @@ export const estimateTokenCount = (text: string, provider: LLMProvider = LLMProv
 
     // Latin Diacritics
     if (latinDiacritics > 0) {
-        // Treat as separate cost
+        // Latin diacritics (like ā, ī) often break tokens or are separate tokens.
+        // We treat them as having a higher cost than plain letters.
+        // Cost = (Count / CharsPerToken) * Multiplier
         tokens += (latinDiacritics / config.latinCharsPerToken) * (1 + config.latinDiacriticOverhead);
     }
 

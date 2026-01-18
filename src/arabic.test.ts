@@ -754,4 +754,23 @@ Scholars like al-Bukhārī (البخاري) compiled ḥadīth collections.`;
             expect(result).toBeGreaterThan(0);
         });
     });
+    describe('Regression Tests', () => {
+        it('should avoid global inflation: single diacritic should not penalize entire text', () => {
+            const plain = 'بسم الله الرحمن الرحيم '.repeat(100); // 2300 chars
+            const diacritic = 'ِ'; // single kasra
+
+            const countPlain = estimateTokenCount(plain);
+            const countDiacritic = estimateTokenCount(diacritic);
+            const countCombined = estimateTokenCount(plain + diacritic);
+
+            const sumOfParts = countPlain + countDiacritic;
+
+            // With the BUG: combined (884) >> sum (770) due to 15% multiplier on everything
+            // With the FIX: combined (~770) ~= sum (770)
+
+            // Allow small rounding diffs, but 15% of 1000 tokens is 150 tokens.
+            // We want diff < 5 tokens.
+            expect(Math.abs(countCombined - sumOfParts)).toBeLessThan(5);
+        });
+    });
 });
