@@ -1,4 +1,19 @@
+import {
+    ABBREVIATION_REGEX,
+    ENGLISH_PHRASE_REGEX,
+    PARENTHETICAL_REGEX,
+    SALUTATION_SYMBOL,
+    SYMBOL_CLEANUP_REGEX,
+} from './constants';
 import { normalizeSpaces } from './formatting';
+import {
+    buildNormalizedArabic,
+    buildNormalizedLatin,
+    expandArabicDiacritics,
+    findArabicMatches,
+    findLatinMatches,
+    mapRangeToOriginal,
+} from './utils/salutation';
 
 /**
  * Replaces common Arabic prefixes (like 'Al-', 'Ar-', 'Ash-', etc.) with 'al-' in the text.
@@ -28,20 +43,77 @@ export const normalizeDoubleApostrophes = (text: string) => {
 };
 
 /**
- * Replaces common salutations such as "sallahu alayhi wasallam" with "ﷺ" in the text.
- * It also handles variations of the salutation phrase, including 'peace and blessings be upon him'.
- * Example: 'Then Muḥammad (sallahu alayhi wasallam)' becomes 'Then Muḥammad ﷺ'.
+ * Replaces common salutations with the ﷺ symbol.
  *
- * @param {string} text - The input text containing salutations.
- * @returns {string} - The modified text with salutations replaced.
+ * Handles 130+ variations including:
+ * - Arabic script (with and without diacritics)
+ * - Latin transliterations (various romanization schemes)
+ * - Abbreviations (PBUH, SAWS, SAW, etc.)
+ * - English phrases ("peace and blessings be upon him")
+ * - Parenthetical forms
+ *
+ * @param text - The input text containing salutations
+ * @returns The modified text with salutations replaced by ﷺ
  */
 export const replaceSalutationsWithSymbol = (text: string) => {
-    return text
-        .replace(
-            /\(peace be upon him\)|(Messenger of (Allah|Allāh)|Messenger|Prophet|Mu[hḥ]ammad) *\((s[^)]*m|peace[^)]*him|May[^)]*him|may[^)]*him)\)*/gi,
-            '$1 ﷺ',
-        )
-        .replace(/,\s*ﷺ\s*,/g, ' ﷺ');
+    if (!text) {
+        return '';
+    }
+
+    let result = text;
+
+    // 1. Handle parenthetical salutations first (contextual patterns)
+    result = result.replace(PARENTHETICAL_REGEX, (_match, prefix) => {
+        return prefix ? `${prefix} ${SALUTATION_SYMBOL}` : ` ${SALUTATION_SYMBOL}`;
+    });
+
+    // 2. Replace abbreviations (exact word matches)
+    result = result.replace(ABBREVIATION_REGEX, SALUTATION_SYMBOL);
+
+    // 3. Replace Latin transliteration patterns using token-FSM matching
+    const latinNormalized = buildNormalizedLatin(result);
+    const latinMatches = findLatinMatches(latinNormalized.normalized);
+    if (latinMatches.length > 0) {
+        for (let i = latinMatches.length - 1; i >= 0; i--) {
+            const mapped = mapRangeToOriginal(latinNormalized.map, latinMatches[i].start, latinMatches[i].end);
+            if (!mapped) {
+                continue;
+            }
+            result = result.slice(0, mapped.origStart) + ` ${SALUTATION_SYMBOL} ` + result.slice(mapped.origEnd);
+        }
+    }
+
+    // 4. Replace Arabic salutation patterns using token matching
+    const arabicNormalized = buildNormalizedArabic(result);
+    const arabicMatches = findArabicMatches(arabicNormalized.normalized);
+    if (arabicMatches.length > 0) {
+        for (let i = arabicMatches.length - 1; i >= 0; i--) {
+            const mapped = mapRangeToOriginal(arabicNormalized.map, arabicMatches[i].start, arabicMatches[i].end);
+            if (!mapped) {
+                continue;
+            }
+            const expanded = expandArabicDiacritics(result, mapped.origStart, mapped.origEnd);
+            result = result.slice(0, expanded.origStart) + ` ${SALUTATION_SYMBOL} ` + result.slice(expanded.origEnd);
+        }
+    }
+
+    // 5. Replace English phrases
+    result = result.replace(ENGLISH_PHRASE_REGEX, ` ${SALUTATION_SYMBOL} `);
+
+    // 6. Clean up symbol with surrounding dashes/punctuation
+    result = result.replace(SYMBOL_CLEANUP_REGEX, ` ${SALUTATION_SYMBOL} `);
+
+    // 7. Clean up parentheses around the symbol (from patterns like (SAW))
+    result = result.replace(/\([ \t]*ﷺ[ \t]*\)/g, SALUTATION_SYMBOL);
+
+    // 8. Clean up commas around the symbol
+    result = result.replace(/,[ \t]*ﷺ[ \t]*,?/g, ` ${SALUTATION_SYMBOL}`);
+    result = result.replace(/,?[ \t]*ﷺ[ \t]*,/g, ` ${SALUTATION_SYMBOL}`);
+
+    // 8. Clean up horizontal whitespace without flattening line breaks
+    result = result.replace(/[ \t]+/g, ' ').replace(/^[ \t]+|[ \t]+$/g, '');
+
+    return result;
 };
 
 /**

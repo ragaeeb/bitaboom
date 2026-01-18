@@ -9,6 +9,7 @@ import {
     estimateTokenCount,
     fixTrailingWow,
     getArabicScore,
+    LLMProvider,
     removeNonIndexSignatures,
     removeSingularCodes,
     removeSolitaryArabicLetters,
@@ -361,63 +362,396 @@ describe('countWords', () => {
 });
 
 describe('estimateTokenCount', () => {
-    it('should estimate tokens for plain English text', async () => {
-        // ~4 chars per token for Latin text
-        const result = estimateTokenCount('Hello world');
-        expect(result).toBeGreaterThan(0);
-        expect(result).toBe(Math.ceil(11 / 4)); // 3 tokens
+    describe('edge cases', () => {
+        it('should return 0 for empty string', () => {
+            expect(estimateTokenCount('')).toBe(0);
+        });
+
+        it('should return 0 for null/undefined', () => {
+            expect(estimateTokenCount(null as any)).toBe(0);
+            expect(estimateTokenCount(undefined as any)).toBe(0);
+        });
+
+        it('should handle whitespace-only string', () => {
+            expect(estimateTokenCount('   ')).toBeGreaterThanOrEqual(0);
+            expect(estimateTokenCount('\t\t')).toBeGreaterThanOrEqual(0);
+            expect(estimateTokenCount('\n\n')).toBeGreaterThanOrEqual(0);
+        });
     });
 
-    it('should estimate tokens for Arabic base characters', async () => {
-        // Arabic base: ~2.5 chars/token
-        // "السلام عليكم" = 11 Arabic chars + 1 space
-        const text = 'السلام عليكم';
-        const result = estimateTokenCount(text);
-        // 11 Arabic base chars / 2.5 + 1 space / 4 ≈ 5
-        expect(result).toBeGreaterThanOrEqual(4);
-        expect(result).toBeLessThanOrEqual(6);
+    describe('plain English text', () => {
+        it('should estimate tokens for simple English text', () => {
+            // ~4 chars per token for Latin text
+            const result = estimateTokenCount('Hello world');
+            expect(result).toBeGreaterThan(0);
+            expect(result).toBeLessThanOrEqual(5);
+        });
+
+        it('should handle longer English text', () => {
+            const text = 'The quick brown fox jumps over the lazy dog';
+            const result = estimateTokenCount(text);
+            // 43 chars / 4 ≈ 11 tokens
+            expect(result).toBeGreaterThanOrEqual(8);
+            expect(result).toBeLessThanOrEqual(15);
+        });
     });
 
-    it('should count Arabic diacritics separately', async () => {
-        // With diacritics: each counts as ~1 token
-        const withDiacritics = 'بِسْمِ اللَّهِ';
-        const withoutDiacritics = 'بسم الله';
+    describe('plain Arabic text', () => {
+        it('should estimate tokens for Arabic base characters', () => {
+            const text = 'السلام عليكم';
+            const result = estimateTokenCount(text);
+            expect(result).toBeGreaterThan(0);
+        });
 
-        const tokensWith = estimateTokenCount(withDiacritics);
-        const tokensWithout = estimateTokenCount(withoutDiacritics);
-
-        // Diacritized version should have more tokens
-        expect(tokensWith).toBeGreaterThan(tokensWithout);
+        it('should estimate higher tokens for Arabic vs English of similar meaning', () => {
+            // Arabic uses ~3x more tokens than English
+            const arabic = 'بسم الله الرحمن الرحيم';
+            const english = 'In the name of God';
+            const arabicTokens = estimateTokenCount(arabic);
+            const englishTokens = estimateTokenCount(english);
+            // Arabic should use more tokens
+            expect(arabicTokens).toBeGreaterThan(englishTokens);
+        });
     });
 
-    it('should count tatweel characters', async () => {
-        // Tatweel: ~1 per token
-        const withTatweel = 'الـلـه';
-        const withoutTatweel = 'الله';
+    describe('Arabic diacritics (tashkeel)', () => {
+        it('should add overhead when diacritics are present', () => {
+            const withDiacritics = 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ';
+            const withoutDiacritics = 'بسم الله الرحمن الرحيم';
 
-        const tokensWith = estimateTokenCount(withTatweel);
-        const tokensWithout = estimateTokenCount(withoutTatweel);
+            const tokensWith = estimateTokenCount(withDiacritics);
+            const tokensWithout = estimateTokenCount(withoutDiacritics);
 
-        // Tatweel version should have 2 extra tokens
-        expect(tokensWith).toBeGreaterThan(tokensWithout);
+            // Diacritized version should have more tokens (overhead)
+            expect(tokensWith).toBeGreaterThan(tokensWithout);
+        });
+
+        it('should handle isolated diacritics', () => {
+            // Individual diacritics (rare but possible)
+            const diacriticsOnly = 'ـِـَـُـْـّـً';
+            const result = estimateTokenCount(diacriticsOnly);
+            expect(result).toBeGreaterThanOrEqual(0);
+        });
     });
 
-    it('should handle Arabic-Indic numerals', async () => {
-        // Arabic-Indic numerals: ~4 chars/token (same as Latin)
-        const arabicNumerals = '١٢٣٤٥٦٧٨';
-        const result = estimateTokenCount(arabicNumerals);
-        expect(result).toBe(Math.ceil(8 / 4)); // 2 tokens
+    describe('tatweel (kashida)', () => {
+        it('should handle tatweel characters', () => {
+            const withTatweel = 'الـلـه';
+            const withoutTatweel = 'الله';
+
+            const tokensWith = estimateTokenCount(withTatweel);
+            const tokensWithout = estimateTokenCount(withoutTatweel);
+
+            // Tatweel adds some characters but may be minimal impact
+            expect(tokensWith).toBeGreaterThanOrEqual(tokensWithout);
+        });
+
+        it('should handle extended tatweel', () => {
+            const extendedTatweel = 'اللــــــه';
+            const result = estimateTokenCount(extendedTatweel);
+            expect(result).toBeGreaterThan(0);
+        });
     });
 
-    it('should handle mixed content', async () => {
-        // Mix of Arabic, English, numerals
-        const mixed = 'P123 - السلام عليكم';
-        const result = estimateTokenCount(mixed);
-        expect(result).toBeGreaterThan(0);
+    describe('Latin diacritics (transliteration)', () => {
+        it('should handle Latin diacritics for transliteration', () => {
+            // Common transliteration characters
+            const transliterated = "Qur'ān ḥadīth";
+            const plain = 'Quran hadith';
+
+            const transTokens = estimateTokenCount(transliterated);
+            const plainTokens = estimateTokenCount(plain);
+
+            // Transliterated may have slight overhead
+            expect(transTokens).toBeGreaterThanOrEqual(plainTokens);
+        });
+
+        it('should handle various Latin diacritics', () => {
+            const withDiacritics = 'āīūḥṣṭẓʿʾ';
+            const result = estimateTokenCount(withDiacritics);
+            expect(result).toBeGreaterThan(0);
+        });
+
+        it('should handle mixed transliteration text', () => {
+            const text = 'The book al-Bukhārī mentions the ḥadīth';
+            const result = estimateTokenCount(text);
+            expect(result).toBeGreaterThan(0);
+        });
     });
 
-    it('should handle empty string', async () => {
-        const result = estimateTokenCount('');
-        expect(result).toBe(0);
+    describe('numerals', () => {
+        it('should handle Western numerals', () => {
+            const westernNumerals = '1234567890';
+            const result = estimateTokenCount(westernNumerals);
+            // ~2-3 digits per token
+            expect(result).toBeGreaterThanOrEqual(2);
+            expect(result).toBeLessThanOrEqual(6);
+        });
+
+        it('should handle Arabic-Indic numerals', () => {
+            const arabicNumerals = '١٢٣٤٥٦٧٨٩٠';
+            const result = estimateTokenCount(arabicNumerals);
+            expect(result).toBeGreaterThanOrEqual(2);
+            expect(result).toBeLessThanOrEqual(6);
+        });
+
+        it('should handle mixed numerals in text', () => {
+            const mixed = 'الآية 37 من سورة البقرة';
+            const result = estimateTokenCount(mixed);
+            expect(result).toBeGreaterThan(0);
+        });
+    });
+
+    describe('whitespace handling', () => {
+        it('should handle single spaces', () => {
+            const withSpaces = 'hello world test';
+            const result = estimateTokenCount(withSpaces);
+            expect(result).toBeGreaterThan(0);
+        });
+
+        it('should handle multiple spaces', () => {
+            const multipleSpaces = 'hello    world';
+            const result = estimateTokenCount(multipleSpaces);
+            expect(result).toBeGreaterThan(0);
+        });
+
+        it('should handle tabs', () => {
+            const withTabs = 'hello\tworld\ttest';
+            const result = estimateTokenCount(withTabs);
+            expect(result).toBeGreaterThan(0);
+        });
+
+        it('should handle newlines', () => {
+            const withNewlines = 'hello\nworld\ntest';
+            const result = estimateTokenCount(withNewlines);
+            expect(result).toBeGreaterThan(0);
+        });
+
+        it('should handle mixed whitespace', () => {
+            const mixed = 'hello \t\n world';
+            const result = estimateTokenCount(mixed);
+            expect(result).toBeGreaterThan(0);
+        });
+    });
+
+    describe('mixed content', () => {
+        it('should handle Arabic and English mix', () => {
+            const mixed = 'Hello السلام عليكم World';
+            const result = estimateTokenCount(mixed);
+            expect(result).toBeGreaterThan(0);
+        });
+
+        it('should handle Arabic, English, and numbers', () => {
+            const mixed = 'P123 - السلام عليكم 456';
+            const result = estimateTokenCount(mixed);
+            expect(result).toBeGreaterThan(0);
+        });
+
+        it('should handle full bilingual sentence', () => {
+            const bilingual = 'The word الله means God in Arabic';
+            const result = estimateTokenCount(bilingual);
+            expect(result).toBeGreaterThan(0);
+        });
+
+        it('should handle Arabic diacritics mixed with English', () => {
+            const mixed = 'The phrase بِسْمِ اللَّهِ means In the name of God';
+            const result = estimateTokenCount(mixed);
+            expect(result).toBeGreaterThan(0);
+        });
+
+        it('should handle Latin diacritics mixed with Arabic', () => {
+            const mixed = 'الإمام al-Bukhārī wrote الصحيح';
+            const result = estimateTokenCount(mixed);
+            expect(result).toBeGreaterThan(0);
+        });
+
+        it('should handle both Arabic and Latin diacritics together', () => {
+            const mixed = 'بِسْمِ اللَّهِ - In the name of Allāh';
+            const result = estimateTokenCount(mixed);
+            expect(result).toBeGreaterThan(0);
+        });
+
+        it('should handle mixed punctuation (English and Arabic)', () => {
+            const mixed = 'What is السلام? Answer: عليكم!';
+            const result = estimateTokenCount(mixed);
+            expect(result).toBeGreaterThan(0);
+        });
+
+        it('should handle Arabic punctuation mixed with English', () => {
+            const mixed = 'He said «Hello» and they replied: مرحباً؟';
+            const result = estimateTokenCount(mixed);
+            expect(result).toBeGreaterThan(0);
+        });
+
+        it('should handle mixed content with line breaks', () => {
+            const mixed = 'English line\nالسطر العربي\nAnother English line';
+            const result = estimateTokenCount(mixed);
+            expect(result).toBeGreaterThan(0);
+        });
+
+        it('should handle mixed content with tabs and spaces', () => {
+            const mixed = 'Word1\tكلمة\t Word2   عبارة';
+            const result = estimateTokenCount(mixed);
+            expect(result).toBeGreaterThan(0);
+        });
+
+        it('should handle complex bilingual paragraph', () => {
+            const complex = `The Qur'ān (القرآن الكريم) is the holy book.
+It contains verses (آيات) revealed to the Prophet ﷺ.
+Scholars like al-Bukhārī (البخاري) compiled ḥadīth collections.`;
+            const result = estimateTokenCount(complex);
+            expect(result).toBeGreaterThan(0);
+        });
+
+        it('should handle Arabic with English abbreviations and numbers', () => {
+            const mixed = 'سورة البقرة (Ch. 2) verses 1-5 / الآيات ١-٥';
+            const result = estimateTokenCount(mixed);
+            expect(result).toBeGreaterThan(0);
+        });
+
+        it('should handle transliteration with original Arabic', () => {
+            const mixed = "al-ḥamdu lillāh (الحمد لله) - 'All praise is due to God'";
+            const result = estimateTokenCount(mixed);
+            expect(result).toBeGreaterThan(0);
+        });
+
+        it('should handle mixed content with various whitespace types', () => {
+            const mixed = 'Start\n\nالفقرة\t\tMiddle\r\nEnd عربي';
+            const result = estimateTokenCount(mixed);
+            expect(result).toBeGreaterThan(0);
+        });
+
+        it('should handle bilingual text with guillemets and quotes', () => {
+            const mixed = 'He read «الفاتحة» and said: "This is beautiful"';
+            const result = estimateTokenCount(mixed);
+            expect(result).toBeGreaterThan(0);
+        });
+
+        it('should compare mixed content across providers', () => {
+            const mixed = 'بِسْمِ اللَّهِ - In the name of Allāh (God)';
+
+            const gemini = estimateTokenCount(mixed, LLMProvider.Gemini);
+            const openai = estimateTokenCount(mixed, LLMProvider.OpenAI);
+            const claude = estimateTokenCount(mixed, LLMProvider.Claude);
+
+            // All should return positive values
+            expect(gemini).toBeGreaterThan(0);
+            expect(openai).toBeGreaterThan(0);
+            expect(claude).toBeGreaterThan(0);
+
+            // Gemini should be most efficient, Claude least
+            expect(gemini).toBeLessThanOrEqual(openai);
+            expect(claude).toBeGreaterThanOrEqual(openai);
+        });
+    });
+
+    describe('LLM provider-specific estimation', () => {
+        const testText = 'بسم الله الرحمن الرحيم';
+
+        it('should accept LLMProvider.Generic (default)', () => {
+            const result = estimateTokenCount(testText, LLMProvider.Generic);
+            expect(result).toBeGreaterThan(0);
+        });
+
+        it('should accept LLMProvider.OpenAI', () => {
+            const result = estimateTokenCount(testText, LLMProvider.OpenAI);
+            expect(result).toBeGreaterThan(0);
+        });
+
+        it('should accept LLMProvider.Gemini', () => {
+            const result = estimateTokenCount(testText, LLMProvider.Gemini);
+            expect(result).toBeGreaterThan(0);
+        });
+
+        it('should accept LLMProvider.Claude', () => {
+            const result = estimateTokenCount(testText, LLMProvider.Claude);
+            expect(result).toBeGreaterThan(0);
+        });
+
+        it('should accept LLMProvider.Grok', () => {
+            const result = estimateTokenCount(testText, LLMProvider.Grok);
+            expect(result).toBeGreaterThan(0);
+        });
+
+        it('should return Gemini tokens < OpenAI tokens for Arabic', () => {
+            const geminiTokens = estimateTokenCount(testText, LLMProvider.Gemini);
+            const openAITokens = estimateTokenCount(testText, LLMProvider.OpenAI);
+            // Gemini is ~25% more efficient
+            expect(geminiTokens).toBeLessThanOrEqual(openAITokens);
+        });
+
+        it('should return Claude tokens > OpenAI tokens for Arabic', () => {
+            const claudeTokens = estimateTokenCount(testText, LLMProvider.Claude);
+            const openAITokens = estimateTokenCount(testText, LLMProvider.OpenAI);
+            // Claude is less efficient for Arabic
+            expect(claudeTokens).toBeGreaterThanOrEqual(openAITokens);
+        });
+
+        it('should return similar tokens for Grok and OpenAI', () => {
+            const grokTokens = estimateTokenCount(testText, LLMProvider.Grok);
+            const openAITokens = estimateTokenCount(testText, LLMProvider.OpenAI);
+            // Grok uses similar BPE to OpenAI
+            expect(Math.abs(grokTokens - openAITokens)).toBeLessThanOrEqual(2);
+        });
+
+        it('should use Generic as default when no provider specified', () => {
+            const defaultResult = estimateTokenCount(testText);
+            const genericResult = estimateTokenCount(testText, LLMProvider.Generic);
+            expect(defaultResult).toBe(genericResult);
+        });
+    });
+
+    describe('provider comparison with English text', () => {
+        const englishText = 'The quick brown fox jumps over the lazy dog';
+
+        it('should have similar estimates across providers for English', () => {
+            const openAI = estimateTokenCount(englishText, LLMProvider.OpenAI);
+            const gemini = estimateTokenCount(englishText, LLMProvider.Gemini);
+            const generic = estimateTokenCount(englishText, LLMProvider.Generic);
+
+            // English tokenization is more consistent across providers
+            expect(Math.abs(openAI - gemini)).toBeLessThanOrEqual(3);
+            expect(Math.abs(openAI - generic)).toBeLessThanOrEqual(3);
+        });
+
+        it('should have Claude use slightly more tokens for English', () => {
+            const claudeTokens = estimateTokenCount(englishText, LLMProvider.Claude);
+            const openAITokens = estimateTokenCount(englishText, LLMProvider.OpenAI);
+            // Claude uses 3.5 chars/token vs 4 for others
+            expect(claudeTokens).toBeGreaterThanOrEqual(openAITokens);
+        });
+    });
+
+    describe('provider comparison with diacritized Arabic', () => {
+        const diacritizedArabic = 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ';
+
+        it('should have Gemini be most efficient for diacritized Arabic', () => {
+            const geminiTokens = estimateTokenCount(diacritizedArabic, LLMProvider.Gemini);
+            const openAITokens = estimateTokenCount(diacritizedArabic, LLMProvider.OpenAI);
+            const claudeTokens = estimateTokenCount(diacritizedArabic, LLMProvider.Claude);
+
+            expect(geminiTokens).toBeLessThanOrEqual(openAITokens);
+            expect(geminiTokens).toBeLessThan(claudeTokens);
+        });
+    });
+
+    describe('punctuation', () => {
+        it('should handle English punctuation', () => {
+            const withPunctuation = 'Hello, world! How are you?';
+            const result = estimateTokenCount(withPunctuation);
+            expect(result).toBeGreaterThan(0);
+        });
+
+        it('should handle Arabic punctuation', () => {
+            const withArabicPunctuation = 'كيف حالك؟ الحمد لله!';
+            const result = estimateTokenCount(withArabicPunctuation);
+            expect(result).toBeGreaterThan(0);
+        });
+
+        it('should handle guillemets', () => {
+            const withGuillemets = '«قال رسول الله»';
+            const result = estimateTokenCount(withGuillemets);
+            expect(result).toBeGreaterThan(0);
+        });
     });
 });

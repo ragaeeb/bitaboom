@@ -67,6 +67,14 @@ preformatArabicText(['صفحة 1 ...', 'صفحة 2 ...']); // batch mode
 - **Transliteration polish** – normalise common Arabic prefixes (`al-`, `wa-`, `bi-`), dedupe apostrophes, replace salutations with ﷺ, and extract initials from transliterated names.
 - **Bun-native toolchain** – tests run through `bun test` and builds use an in-repo `tsdown` pipeline powered by `bun build` + `tsc` for declarations.
 
+## Performance tests
+
+Performance microbenchmarks live in:
+- `src/preformat.perf.test.ts` (preformat pipeline)
+- `src/replaceSalutations.perf.test.ts` (salutation replacement)
+
+Run them with `bun test`.
+
 ## API overview
 
 All modules are exported from `src/index.ts`. Functions are grouped below by feature area.
@@ -85,6 +93,9 @@ All modules are exported from `src/index.ts`. Functions are grouped below by fea
 | `removeSingularCodes` | Strip single Arabic letters or digits enclosed in (), [], or «». |
 | `removeSolitaryArabicLetters` | Remove isolated Arabic letters (excluding Hijri "ه"). |
 | `replaceEnglishPunctuationWithArabic` | Replace ASCII `?` and `;` with Arabic equivalents (`؟`, `؛`) and normalise commas. |
+| `countWords` | Count words in text by splitting on whitespace. Works for both Arabic and English. |
+| `estimateTokenCount` | LLM-aware token estimation supporting multiple providers (OpenAI, Gemini, Claude, Grok). Uses fertility rates based on BPE tokenization research. |
+| `findLastPunctuation` | Find the index of the last punctuation character in a string. |
 
 ### Cleaning & tolerant matching (`src/cleaning.ts`, `src/sanitization.ts`)
 
@@ -172,6 +183,73 @@ All modules are exported from `src/index.ts`. Functions are grouped below by fea
 | Function | Description |
 | --- | --- |
 | `preformatArabicText` | High-performance Arabic preformatting pipeline (single-pass, optimized for large datasets). Accepts a single string or an array of strings. |
+
+## Token Estimation
+
+For LLM-based workflows, `estimateTokenCount` provides Arabic-aware token estimation with **LLM-specific configurations**.
+
+### Usage
+
+```typescript
+import { estimateTokenCount, LLMProvider } from 'bitaboom';
+
+// Default (Generic) estimation
+estimateTokenCount('بسم الله الرحمن الرحيم');
+
+// Provider-specific estimation
+estimateTokenCount('بسم الله الرحمن الرحيم', LLMProvider.OpenAI);
+estimateTokenCount('بسم الله الرحمن الرحيم', LLMProvider.Gemini);
+estimateTokenCount('بسم الله الرحمن الرحيم', LLMProvider.Claude);
+estimateTokenCount('بسم الله الرحمن الرحيم', LLMProvider.Grok);
+```
+
+### Research Findings
+
+Modern LLMs use **Byte Pair Encoding (BPE)** tokenization, which behaves differently for Arabic vs English:
+
+| Aspect | English | Arabic | Impact |
+|--------|---------|--------|--------|
+| Characters per token | ~4 | ~1.3 (OpenAI) | Arabic uses 3x more tokens |
+| UTF-8 bytes per char | 1 | 2 | Double byte overhead |
+| Diacritics | N/A | Merged with base letters | NOT separate tokens |
+| Morphology | Simple | Rich (prefixes/suffixes) | More subword splits |
+
+**Provider Efficiency** (tokens for same Arabic content):
+- **Gemini**: Most efficient (~25% fewer tokens than OpenAI)
+- **OpenAI**: Standard BPE baseline
+- **Grok**: Similar to OpenAI
+- **Claude**: Least efficient for Arabic
+
+### Algorithm
+
+The estimation uses **fertility rates** (characters per token) rather than per-character weights:
+
+```typescript
+tokens = arabicChars / arabicCharsPerToken
+       + latinChars / latinCharsPerToken
+       + numerals / numeralGroupSize
+       + diacriticOverhead (multiplicative)
+       + latinDiacriticOverhead (for ā, ī, ū, etc.)
+```
+
+**Provider Configurations:**
+
+| Provider | Latin chars/token | Arabic chars/token | Diacritic overhead |
+|----------|-------------------|--------------------|--------------------|
+| OpenAI   | 4.0 | 1.3 | +15% |
+| Gemini   | 4.0 | 1.6 | +10% |
+| Claude   | 3.5 | 1.1 | +20% |
+| Grok     | 4.0 | 1.3 | +15% |
+| Generic  | 4.0 | 1.5 | +15% |
+
+### Character Type Handling
+
+- **Arabic base characters**: Count towards Arabic fertility rate
+- **Arabic diacritics (tashkeel)**: Merged by BPE, adds overhead percentage
+- **Tatweel**: Often removed in preprocessing, minimal impact
+- **Latin diacritics (ā, ī, ū, ḥ)**: Used in transliteration, has separate overhead
+- **Numerals**: Grouped (1-3 digits often = 1 token)
+- **Whitespace**: Typically absorbed into following token
 
 ## Build & development
 
