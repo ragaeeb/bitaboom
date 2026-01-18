@@ -67,6 +67,14 @@ preformatArabicText(['صفحة 1 ...', 'صفحة 2 ...']); // batch mode
 - **Transliteration polish** – normalise common Arabic prefixes (`al-`, `wa-`, `bi-`), dedupe apostrophes, replace salutations with ﷺ, and extract initials from transliterated names.
 - **Bun-native toolchain** – tests run through `bun test` and builds use an in-repo `tsdown` pipeline powered by `bun build` + `tsc` for declarations.
 
+## Performance tests
+
+Performance microbenchmarks live in:
+- `src/preformat.perf.test.ts` (preformat pipeline)
+- `src/replaceSalutations.perf.test.ts` (salutation replacement)
+
+Run them with `bun test`.
+
 ## API overview
 
 All modules are exported from `src/index.ts`. Functions are grouped below by feature area.
@@ -192,7 +200,7 @@ estimateTokenCount('بسم الله الرحمن الرحيم');
 estimateTokenCount('بسم الله الرحمن الرحيم', LLMProvider.OpenAI);
 estimateTokenCount('بسم الله الرحمن الرحيم', LLMProvider.Gemini);
 estimateTokenCount('بسم الله الرحمن الرحيم', LLMProvider.Claude);
-estimateTokenCount('بسم الله الرحمن الرحيm', LLMProvider.Grok);
+estimateTokenCount('بسم الله الرحمن الرحيم', LLMProvider.Grok);
 ```
 
 ### Research Findings

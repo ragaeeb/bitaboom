@@ -6,3 +6,4 @@ export * from './parsing';
 export { preformatArabicText } from './preformat';
 export * from './sanitization';
 export * from './transliteration';
+export { isArabicDiacritic, isArabicLetter, isLatinLetter } from './utils/salutation';

@@ -33,6 +33,7 @@
 
 ## Performance & profiling
 - Perf microbenchmarks live in `src/preformat.perf.test.ts` (runs under `bun test`).
+- Salutation replacement perf microbenchmarks live in `src/replaceSalutations.perf.test.ts`.
 - Heavy memory stress tests are opt-in (skipped by default):
   - `BITABOOM_HEAVY_TESTS=1 bun test`
   - Optional size override: `BITABOOM_HEAVY_MB=120`
@@ -43,5 +44,9 @@
 ## Documentation
 - Significant behaviour changes must be reflected in `README.md`.
 - Mention noteworthy build/test changes in pull request descriptions.
+
+## Lessons learned
+- Avoid collapsing all whitespace when normalizing salutations; preserve line breaks by limiting cleanup to horizontal spaces/tabs.
+- Keep salutation regexes centralized in `src/constants.ts` and update tests when patterns are expanded.
 
 Thanks for keeping the library tidy!

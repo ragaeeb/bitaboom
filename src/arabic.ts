@@ -263,37 +263,38 @@ const TOKEN_CONFIG: Record<LLMProvider, TokenConfig> = {
 };
 
 // Character class patterns
-const ARABIC_DIACRITICS_PATTERN =
-    /[\u064B-\u0652\u0670\u0617-\u061A\u06D6-\u06DC\u06DF-\u06E4\u06E7\u06E8\u06EA-\u06ED]/g;
-const ARABIC_BASE_PATTERN = /[\u0600-\u0640\u0641-\u064A\u0653-\u065F\u0671-\u06FF]/g;
-const ARABIC_INDIC_NUMERALS_PATTERN = /[\u0660-\u0669\u06F0-\u06F9]/g;
-const WESTERN_NUMERALS_PATTERN = /[0-9]/g;
-const LATIN_DIACRITICS_PATTERN = /[\u0100-\u017F\u0180-\u024F\u1E00-\u1EFF\u02B9-\u02FF]/g;
-const WHITESPACE_PATTERN = /\s/g;
-const TATWEEL_PATTERN = /\u0640/g;
+const ARABIC_DIACRITICS_RANGES = [
+    [0x064b, 0x0652], // Tashkeel
+    [0x0670, 0x0670], // Dagger alif
+    [0x0617, 0x061a], // Small koranic symbols
+    [0x06d6, 0x06dc], // Small high ligatures
+    [0x06df, 0x06e4], // Small high ligatures
+    [0x06e7, 0x06e8], // Small high forms
+    [0x06ea, 0x06ed], // Empty centre low stops
+];
+
+const LATIN_DIACRITICS_RANGES = [
+    [0x00c0, 0x00ff], // Latin-1 Supplement (é, à, etc.) - CRITICAL missing range added
+    [0x0100, 0x017f], // Latin Extended-A
+    [0x0180, 0x024f], // Latin Extended-B
+    [0x1e00, 0x1eff], // Latin Extended Additional
+    [0x02b9, 0x02ff], // Spacing Modifier Letters
+];
 
 /**
  * LLM-aware token estimation with provider-specific configurations.
  *
- * Uses fertility rates (characters per token) based on BPE tokenization research:
- * - Arabic text uses ~3x more tokens than English for same content
- * - Diacritics are merged with base letters by BPE, adding overhead percentage
- * - Gemini is ~25% more efficient for Arabic than OpenAI
- * - Claude is less efficient for Arabic than other providers
+ * Refactored to use a Single-Pass O(N) classifier for performance and correctness.
+ *
+ * algorithm:
+ * - Single pass iteration over code points (avoiding memory spikes from match() arrays)
+ * - Exclusive classification (preventing double-counting overlaps)
+ * - Additive overhead application (preventing overhead bleeding into other scripts)
+ * - Run-length encoding approximation for numerals (better BPE simulation)
  *
  * @param text - The input text to estimate tokens for
  * @param provider - The LLM provider (defaults to Generic)
  * @returns Estimated token count
- *
- * @example
- * ```typescript
- * // Default estimation
- * estimateTokenCount('بسم الله الرحمن الرحيم');
- *
- * // Provider-specific estimation
- * estimateTokenCount('بسم الله الرحمن الرحيم', LLMProvider.OpenAI);
- * estimateTokenCount('بسم الله الرحمن الرحيم', LLMProvider.Gemini);
- * ```
  */
 export const estimateTokenCount = (text: string, provider: LLMProvider = LLMProvider.Generic): number => {
     if (!text) {
@@ -302,59 +303,154 @@ export const estimateTokenCount = (text: string, provider: LLMProvider = LLMProv
 
     const config = TOKEN_CONFIG[provider];
 
-    // Count character types
-    const arabicDiacritics = (text.match(ARABIC_DIACRITICS_PATTERN) || []).length;
-    const tatweel = (text.match(TATWEEL_PATTERN) || []).length;
-    const arabicBase = (text.match(ARABIC_BASE_PATTERN) || []).length - tatweel;
-    const arabicIndicNumerals = (text.match(ARABIC_INDIC_NUMERALS_PATTERN) || []).length;
-    const westernNumerals = (text.match(WESTERN_NUMERALS_PATTERN) || []).length;
-    const latinDiacritics = (text.match(LATIN_DIACRITICS_PATTERN) || []).length;
-    const whitespace = (text.match(WHITESPACE_PATTERN) || []).length;
+    // Counters
+    let arabicBase = 0;
+    let arabicDiacritics = 0;
+    let tatweel = 0;
+    let arabicIndicNumerals = 0;
+    let westernNumerals = 0;
+    let latinBase = 0;
+    let latinDiacritics = 0;
+    let otherChars = 0;
 
-    // Calculate remaining Latin/other characters
-    const countedChars =
-        arabicDiacritics + tatweel + arabicBase + arabicIndicNumerals + westernNumerals + latinDiacritics + whitespace;
-    const latinBase = Math.max(0, text.length - countedChars);
+    // Numeral run tracking (for BPE grouping approximation)
+    let currentNumeralRun = 0;
+    let currentNumeralType: 'none' | 'arabic-indic' | 'western' = 'none';
 
-    // Calculate base tokens
+    // Helper to commit numeral runs
+    const commitNumeralRun = () => {
+        if (currentNumeralRun > 0) {
+            // Logarithmic decay or linear blocking for numerals?
+            // BPE typically keeps 1-3 digits per token.
+            // We'll use the config.numeralGroupSize approximation on the run.
+            const tokens = Math.ceil(currentNumeralRun / config.numeralGroupSize);
+            if (currentNumeralType === 'arabic-indic') {
+                arabicIndicNumerals += tokens;
+            } else {
+                westernNumerals += tokens;
+            }
+            currentNumeralRun = 0;
+            currentNumeralType = 'none';
+        }
+    };
+
+    // Single pass iteration
+    for (const char of text) {
+        const code = char.codePointAt(0) ?? 0;
+        let isNumeral = false;
+
+        // 1. Whitespace
+        // Typically absorbed or 1 token. We track it but don't count it rigidly yet.
+        // For now, we treat it as a separator that breaks numeral runs.
+        if (code <= 0x0020 || code === 0x00a0) {
+            commitNumeralRun();
+            continue;
+        }
+
+        // 2. Arabic Block
+        if ((code >= 0x0600 && code <= 0x06ff) || (code >= 0x0750 && code <= 0x077f)) {
+            // Tatweel
+            if (code === 0x0640) {
+                tatweel++;
+            }
+            // Numerals
+            else if ((code >= 0x0660 && code <= 0x0669) || (code >= 0x06f0 && code <= 0x06f9)) {
+                if (currentNumeralType !== 'arabic-indic') {
+                    commitNumeralRun();
+                }
+                currentNumeralType = 'arabic-indic';
+                currentNumeralRun++;
+                isNumeral = true;
+            }
+            // Diacritics
+            else {
+                let isDiacritic = false;
+                for (const range of ARABIC_DIACRITICS_RANGES) {
+                    if (code >= range[0] && code <= range[1]) {
+                        arabicDiacritics++;
+                        isDiacritic = true;
+                        break;
+                    }
+                }
+                // Base
+                if (!isDiacritic) {
+                    arabicBase++;
+                }
+            }
+        }
+        // 3. Western Numerals
+        else if (code >= 0x0030 && code <= 0x0039) {
+            if (currentNumeralType !== 'western') {
+                commitNumeralRun();
+            }
+            currentNumeralType = 'western';
+            currentNumeralRun++;
+            isNumeral = true;
+        }
+        // 4. Latin Block
+        else if ((code >= 0x0041 && code <= 0x005a) || (code >= 0x0061 && code <= 0x007a)) {
+            latinBase++;
+        }
+        // 5. Latin Diacritics & Extended
+        else {
+            let isLatinDiacritic = false;
+            for (const range of LATIN_DIACRITICS_RANGES) {
+                if (code >= range[0] && code <= range[1]) {
+                    latinDiacritics++;
+                    isLatinDiacritic = true;
+                    break;
+                }
+            }
+            if (isLatinDiacritic) {
+                // handled in if
+            } else {
+                // Punctuation, symbols, CJK, etc.
+                // Treat as "other" - usually closer to Latin tokenization (1 char/token or similar)
+                // or sometimes UTF-8 bytes. We'll map to Latin for simplicity but keep separate.
+                otherChars++;
+            }
+        }
+
+        if (!isNumeral) {
+            commitNumeralRun();
+        }
+    }
+    commitNumeralRun(); // Final flush
+
+    // Calculation with Additive Overhead
     let tokens = 0;
 
-    // Arabic base characters
-    if (arabicBase > 0) {
-        tokens += arabicBase / config.arabicCharsPerToken;
+    // Arabic Tokens
+    if (arabicBase > 0 || tatweel > 0) {
+        // Tatweel is part of Arabic flow, count it with Arabic base rate
+        const baseTokens = (arabicBase + tatweel) / config.arabicCharsPerToken;
+
+        // Additive overhead for diacritics
+        // Applied only to the Arabic portion
+        const diacriticCost = arabicDiacritics > 0 ? baseTokens * config.diacriticOverhead : 0;
+
+        tokens += baseTokens + diacriticCost;
     }
 
-    // Latin base characters
+    // Latin Tokens
     if (latinBase > 0) {
         tokens += latinBase / config.latinCharsPerToken;
     }
 
-    // Numerals (both Arabic-Indic and Western)
-    const totalNumerals = arabicIndicNumerals + westernNumerals;
-    if (totalNumerals > 0) {
-        tokens += totalNumerals / config.numeralGroupSize;
-    }
-
-    // Tatweel - often removed in preprocessing, minimal impact
-    // Just add to base count as they're part of word tokens
-    if (tatweel > 0) {
-        tokens += tatweel / config.latinCharsPerToken;
-    }
-
-    // Apply diacritic overhead (multiplicative, not additive)
-    // BPE merges diacritics with base letters, so we add overhead percentage
-    if (arabicDiacritics > 0 && arabicBase > 0) {
-        const arabicPortion = arabicBase / (arabicBase + latinBase || 1);
-        tokens *= 1 + config.diacriticOverhead * arabicPortion;
-    }
-
-    // Latin diacritics overhead for transliteration text
+    // Latin Diacritics
     if (latinDiacritics > 0) {
+        // Treat as separate cost
         tokens += (latinDiacritics / config.latinCharsPerToken) * (1 + config.latinDiacriticOverhead);
     }
 
-    // Whitespace is typically absorbed by following token in BPE
-    // Don't add separately unless it's standalone
+    // Numerals (already grouped into token counts)
+    tokens += arabicIndicNumerals + westernNumerals;
 
-    return Math.ceil(tokens);
+    // Other Chars (Punctuation, etc.)
+    // Fallback to Latin rate (conservative)
+    if (otherChars > 0) {
+        tokens += otherChars / config.latinCharsPerToken;
+    }
+
+    return Math.max(0, Math.ceil(tokens));
 };
