@@ -1,7 +1,7 @@
 {
     "name": "bitaboom",
     "description": "Use string utils library to format Arabic and English translations.",
-    "version": "2.6.0",
+    "version": "2.4.0",
     "author": "Ragaeeb Haq",
     "license": "MIT",
     "private": false,
