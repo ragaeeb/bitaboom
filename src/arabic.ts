@@ -182,41 +182,179 @@ export const countWords = (text: string) => {
 };
 
 /**
- * Arabic-aware token estimation
- * Categories:
- * - Arabic diacritics (tashkeel U+064B-U+0652, U+0670): ~1 diacritic/token
- * - Tatweel (U+0640): ~1 per token (elongation character)
- * - Arabic-Indic numerals (U+0660-U+0669, U+06F0-U+06F9): ~4 chars/token
- * - Arabic base characters: ~2.5 chars/token
- * - Latin/punctuation/whitespace: ~4 chars/token
+ * Supported LLM providers for token estimation.
+ * Each provider has different tokenization characteristics based on their BPE implementation.
  */
+export enum LLMProvider {
+    /** OpenAI GPT models (GPT-3.5, GPT-4, GPT-4o) - uses tiktoken */
+    OpenAI = 'openai',
+    /** Google Gemini models - uses SentencePiece, 25% more efficient for multilingual */
+    Gemini = 'gemini',
+    /** Anthropic Claude models - less efficient for Arabic */
+    Claude = 'claude',
+    /** xAI Grok models - similar to OpenAI */
+    Grok = 'grok',
+    /** Generic/default estimation - balanced middle ground */
+    Generic = 'generic',
+}
 
-export const estimateTokenCount = (text: string) => {
+/**
+ * Token estimation configuration per LLM provider.
+ * Based on research into BPE tokenization behavior for Arabic and English text.
+ */
+interface TokenConfig {
+    /** Characters per token for Latin/ASCII text */
+    latinCharsPerToken: number;
+    /** Characters per token for Arabic base characters */
+    arabicCharsPerToken: number;
+    /** Percentage overhead when Arabic diacritics (tashkeel) are present */
+    diacriticOverhead: number;
+    /** Percentage overhead for Latin diacritics (ā, ī, ū, ḥ, etc.) */
+    latinDiacriticOverhead: number;
+    /** Digits per token for numerals */
+    numeralGroupSize: number;
+}
+
+/**
+ * Provider-specific token estimation configurations.
+ *
+ * Research findings:
+ * - OpenAI: ~4 chars/token English, ~1.3 chars/token Arabic (3x inflation)
+ * - Gemini: 25% more efficient than OpenAI for Arabic (SentencePiece-based)
+ * - Claude: ~3.5 chars/token English, less efficient for Arabic
+ * - Grok: Similar to OpenAI (standard BPE)
+ */
+const TOKEN_CONFIG: Record<LLMProvider, TokenConfig> = {
+    [LLMProvider.OpenAI]: {
+        latinCharsPerToken: 4,
+        arabicCharsPerToken: 1.3,
+        diacriticOverhead: 0.15,
+        latinDiacriticOverhead: 0.3,
+        numeralGroupSize: 2.5,
+    },
+    [LLMProvider.Gemini]: {
+        latinCharsPerToken: 4,
+        arabicCharsPerToken: 1.6,
+        diacriticOverhead: 0.1,
+        latinDiacriticOverhead: 0.15,
+        numeralGroupSize: 2.5,
+    },
+    [LLMProvider.Claude]: {
+        latinCharsPerToken: 3.5,
+        arabicCharsPerToken: 1.1,
+        diacriticOverhead: 0.2,
+        latinDiacriticOverhead: 0.25,
+        numeralGroupSize: 2.5,
+    },
+    [LLMProvider.Grok]: {
+        latinCharsPerToken: 4,
+        arabicCharsPerToken: 1.3,
+        diacriticOverhead: 0.15,
+        latinDiacriticOverhead: 0.3,
+        numeralGroupSize: 2.5,
+    },
+    [LLMProvider.Generic]: {
+        latinCharsPerToken: 4,
+        arabicCharsPerToken: 1.5,
+        diacriticOverhead: 0.15,
+        latinDiacriticOverhead: 0.25,
+        numeralGroupSize: 3,
+    },
+};
+
+// Character class patterns
+const ARABIC_DIACRITICS_PATTERN =
+    /[\u064B-\u0652\u0670\u0617-\u061A\u06D6-\u06DC\u06DF-\u06E4\u06E7\u06E8\u06EA-\u06ED]/g;
+const ARABIC_BASE_PATTERN = /[\u0600-\u0640\u0641-\u064A\u0653-\u065F\u0671-\u06FF]/g;
+const ARABIC_INDIC_NUMERALS_PATTERN = /[\u0660-\u0669\u06F0-\u06F9]/g;
+const WESTERN_NUMERALS_PATTERN = /[0-9]/g;
+const LATIN_DIACRITICS_PATTERN = /[\u0100-\u017F\u0180-\u024F\u1E00-\u1EFF\u02B9-\u02FF]/g;
+const WHITESPACE_PATTERN = /\s/g;
+const TATWEEL_PATTERN = /\u0640/g;
+
+/**
+ * LLM-aware token estimation with provider-specific configurations.
+ *
+ * Uses fertility rates (characters per token) based on BPE tokenization research:
+ * - Arabic text uses ~3x more tokens than English for same content
+ * - Diacritics are merged with base letters by BPE, adding overhead percentage
+ * - Gemini is ~25% more efficient for Arabic than OpenAI
+ * - Claude is less efficient for Arabic than other providers
+ *
+ * @param text - The input text to estimate tokens for
+ * @param provider - The LLM provider (defaults to Generic)
+ * @returns Estimated token count
+ *
+ * @example
+ * ```typescript
+ * // Default estimation
+ * estimateTokenCount('بسم الله الرحمن الرحيم');
+ *
+ * // Provider-specific estimation
+ * estimateTokenCount('بسم الله الرحمن الرحيم', LLMProvider.OpenAI);
+ * estimateTokenCount('بسم الله الرحمن الرحيم', LLMProvider.Gemini);
+ * ```
+ */
+export const estimateTokenCount = (text: string, provider: LLMProvider = LLMProvider.Generic): number => {
     if (!text) {
         return 0;
     }
 
-    // Arabic diacritics (tashkeel)
-    const diacriticCount = (text.match(/[\u064B-\u0652\u0670]/g) || []).length;
+    const config = TOKEN_CONFIG[provider];
 
-    // Tatweel (kashida elongation)
-    const tatweelCount = (text.match(/\u0640/g) || []).length;
+    // Count character types
+    const arabicDiacritics = (text.match(ARABIC_DIACRITICS_PATTERN) || []).length;
+    const tatweel = (text.match(TATWEEL_PATTERN) || []).length;
+    const arabicBase = (text.match(ARABIC_BASE_PATTERN) || []).length - tatweel;
+    const arabicIndicNumerals = (text.match(ARABIC_INDIC_NUMERALS_PATTERN) || []).length;
+    const westernNumerals = (text.match(WESTERN_NUMERALS_PATTERN) || []).length;
+    const latinDiacritics = (text.match(LATIN_DIACRITICS_PATTERN) || []).length;
+    const whitespace = (text.match(WHITESPACE_PATTERN) || []).length;
 
-    // Arabic-Indic numerals (both forms)
-    const arabicNumeralCount = (text.match(/[\u0660-\u0669\u06F0-\u06F9]/g) || []).length;
+    // Calculate remaining Latin/other characters
+    const countedChars =
+        arabicDiacritics + tatweel + arabicBase + arabicIndicNumerals + westernNumerals + latinDiacritics + whitespace;
+    const latinBase = Math.max(0, text.length - countedChars);
 
-    // Arabic base characters (excluding diacritics, tatweel, numerals)
-    const arabicBaseCount = (text.match(/[\u0600-\u063F\u0641-\u064A\u0653-\u065F\u0671-\u06EF]/g) || []).length;
+    // Calculate base tokens
+    let tokens = 0;
 
-    // Everything else (Latin, punctuation, Western numerals, whitespace)
-    const otherCount = text.length - diacriticCount - tatweelCount - arabicNumeralCount - arabicBaseCount;
+    // Arabic base characters
+    if (arabicBase > 0) {
+        tokens += arabicBase / config.arabicCharsPerToken;
+    }
 
-    // Estimate tokens
-    return Math.ceil(
-        diacriticCount + // ~1 token each
-            tatweelCount + // ~1 token each
-            arabicNumeralCount / 4 + // ~4 chars/token
-            arabicBaseCount / 2.5 + // ~2.5 chars/token
-            otherCount / 4,
-    );
+    // Latin base characters
+    if (latinBase > 0) {
+        tokens += latinBase / config.latinCharsPerToken;
+    }
+
+    // Numerals (both Arabic-Indic and Western)
+    const totalNumerals = arabicIndicNumerals + westernNumerals;
+    if (totalNumerals > 0) {
+        tokens += totalNumerals / config.numeralGroupSize;
+    }
+
+    // Tatweel - often removed in preprocessing, minimal impact
+    // Just add to base count as they're part of word tokens
+    if (tatweel > 0) {
+        tokens += tatweel / config.latinCharsPerToken;
+    }
+
+    // Apply diacritic overhead (multiplicative, not additive)
+    // BPE merges diacritics with base letters, so we add overhead percentage
+    if (arabicDiacritics > 0 && arabicBase > 0) {
+        const arabicPortion = arabicBase / (arabicBase + latinBase || 1);
+        tokens *= 1 + config.diacriticOverhead * arabicPortion;
+    }
+
+    // Latin diacritics overhead for transliteration text
+    if (latinDiacritics > 0) {
+        tokens += (latinDiacritics / config.latinCharsPerToken) * (1 + config.latinDiacriticOverhead);
+    }
+
+    // Whitespace is typically absorbed by following token in BPE
+    // Don't add separately unless it's standalone
+
+    return Math.ceil(tokens);
 };
