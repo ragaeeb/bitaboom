@@ -33,7 +33,10 @@ const setFlags = (chars: string, flags: number) => {
 };
 
 // Initialize Map
-setFlags(' \t', F_SPACE);
+// Standard whitespace + comprehensive Unicode horizontal whitespace
+// Includes: tab, space, non-breaking space, thin space, hair space, zero-width space,
+// narrow non-breaking space, medium mathematical space, ideographic space
+setFlags(' \t\u00A0\u2009\u200A\u200B\u202F\u205F\u3000', F_SPACE);
 setFlags('\n\r', F_SPECIAL); // Newlines are special
 
 // Digits
@@ -93,11 +96,13 @@ const C_ELLIPSIS = 8230; // …
 
 /**
  * Check whether a code unit should be treated as trim whitespace for final output.
+ * Uses the F_SPACE flag from CHAR_MAP to include all registered whitespace characters,
+ * plus newline/CR for line ending handling.
  *
  * @param code UTF-16 code unit
  * @returns True if the code unit is a trim-whitespace character
  */
-const isTrimWhitespace = (code: number) => code === C_SPACE || code === C_TAB || code === C_NEWLINE || code === C_CR;
+const isTrimWhitespace = (code: number) => (CHAR_MAP[code] & F_SPACE) !== 0 || code === C_NEWLINE || code === C_CR;
 
 /**
  * Growable UTF-16 output buffer used by the buffer-backed preformat implementation.
@@ -368,11 +373,11 @@ class Preformatter {
             this.writer.push(C_NEWLINE);
             this.lastCode = C_NEWLINE;
         }
-        // Skip subsequent whitespace
+        // Skip subsequent whitespace (including Unicode whitespace)
         this.i++;
         while (this.i < this.len) {
             const next = this.text.charCodeAt(this.i);
-            if (next === C_SPACE || next === C_TAB || next === C_NEWLINE || next === C_CR) {
+            if ((CHAR_MAP[next] & F_SPACE) !== 0 || next === C_NEWLINE || next === C_CR) {
                 this.i++;
             } else {
                 break;
@@ -426,12 +431,12 @@ class Preformatter {
     }
 
     private handleTrailingWow() {
-        // Peek ahead to see if there's a space after wow
+        // Peek ahead to see if there's a space after wow (including Unicode whitespace)
         let nextIdx = this.i + 1;
         let hasTrailingSpace = false;
         while (nextIdx < this.len) {
             const next = this.text.charCodeAt(nextIdx);
-            if (next === C_SPACE || next === C_TAB) {
+            if ((CHAR_MAP[next] & F_SPACE) !== 0) {
                 hasTrailingSpace = true;
                 nextIdx++;
             } else {
@@ -498,11 +503,11 @@ class Preformatter {
     private shouldSuppressSpaceForSlash() {
         // Slash logic: Don't add space around slashes in number references (e.g. 1/2)
         if (this.code === C_SLASH) {
-            // Peek next non-space
+            // Peek next non-space (skip all whitespace including Unicode whitespace)
             let nextNonSpace = 0;
             for (let k = this.i + 1; k < this.len; k++) {
                 const nc = this.text.charCodeAt(k);
-                if (nc !== C_SPACE && nc !== C_TAB && nc !== C_NEWLINE && nc !== C_CR) {
+                if ((CHAR_MAP[nc] & F_SPACE) === 0 && nc !== C_NEWLINE && nc !== C_CR) {
                     nextNonSpace = nc;
                     break;
                 }

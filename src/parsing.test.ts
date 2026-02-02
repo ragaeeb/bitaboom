@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'bun:test';
 
-import { isBalanced, isJsonStructureValid, normalizeJsonSyntax, parsePageRanges, splitByQuotes } from './parsing';
+import {
+    isBalanced,
+    isJsonStructureValid,
+    normalizeJsonSyntax,
+    parsePageRanges,
+    splitByQuotes,
+    timeToSeconds,
+} from './parsing';
 
 describe('parsing', () => {
     describe('normalizeJsonSyntax', () => {
@@ -22,6 +29,31 @@ describe('parsing', () => {
         it('should return valid JSON for single numeric keys and values', () => {
             const result = normalizeJsonSyntax("{5: 'test'}");
             expect(result).toBe('{"5":"test"}');
+        });
+    });
+
+    describe('timeToSeconds', () => {
+        it('should convert HH:MM:SS format correctly', () => {
+            expect(timeToSeconds('01:30:45')).toBe(5445); // 1h + 30m + 45s
+            expect(timeToSeconds('00:00:01')).toBe(1);
+            expect(timeToSeconds('02:00:00')).toBe(7200);
+        });
+
+        it('should convert MM:SS format correctly', () => {
+            expect(timeToSeconds('05:30')).toBe(330); // 5m + 30s
+            expect(timeToSeconds('00:45')).toBe(45);
+            expect(timeToSeconds('10:00')).toBe(600);
+        });
+
+        it('should handle numeric strings as seconds', () => {
+            expect(timeToSeconds('90')).toBe(90);
+            expect(timeToSeconds('0')).toBe(0);
+            expect(timeToSeconds('3600')).toBe(3600);
+        });
+
+        it('should return 0 for invalid inputs', () => {
+            expect(timeToSeconds('invalid')).toBe(0);
+            expect(timeToSeconds('')).toBe(0);
         });
     });
 

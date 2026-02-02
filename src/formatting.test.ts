@@ -418,6 +418,107 @@ describe('formatting', () => {
         it('no-op', () => {
             expect(cleanMultilines('this is')).toEqual('this is');
         });
+
+        it('should remove regular spaces from the beginning of lines', () => {
+            expect(cleanMultilines('  line1\n  line2')).toBe('line1\nline2');
+        });
+
+        it('should remove regular spaces from the end of lines', () => {
+            expect(cleanMultilines('line1  \nline2  ')).toBe('line1\nline2');
+        });
+
+        it('should remove spaces from both beginning and end of lines', () => {
+            expect(cleanMultilines('  line1  \n  line2  ')).toBe('line1\nline2');
+        });
+
+        it('should remove tabs from the beginning of lines', () => {
+            expect(cleanMultilines('\t\tline1\n\tline2')).toBe('line1\nline2');
+        });
+
+        it('should remove tabs from the end of lines', () => {
+            expect(cleanMultilines('line1\t\t\nline2\t')).toBe('line1\nline2');
+        });
+
+        it('should remove mixed spaces and tabs', () => {
+            expect(cleanMultilines(' \t line1 \t \n\t line2\t ')).toBe('line1\nline2');
+        });
+
+        it('should remove non-breaking spaces (U+00A0)', () => {
+            const nbsp = '\u00A0';
+            expect(cleanMultilines(`${nbsp}${nbsp}line1${nbsp}${nbsp}\n${nbsp}line2${nbsp}`)).toBe('line1\nline2');
+        });
+
+        it('should handle Arabic text with leading/trailing whitespace', () => {
+            expect(
+                cleanMultilines(
+                    ' الله على نبينا محمد وعلى آله وصحبه وسلم.\n                                                                                      كتبه: ربيع بن هادي العمير\n                                                                                               3/7/1437هـ\n',
+                ),
+            ).toBe('الله على نبينا محمد وعلى آله وصحبه وسلم.\nكتبه: ربيع بن هادي العمير\n3/7/1437هـ\n');
+        });
+
+        it('should preserve line breaks while removing horizontal whitespace', () => {
+            expect(cleanMultilines('text\n \n \n')).toBe('text\n\n\n');
+        });
+
+        it('should preserve \r\n line endings', () => {
+            expect(cleanMultilines('  line1  \r\n  line2  \r\n')).toBe('line1\r\nline2\r\n');
+        });
+
+        it('should preserve standalone \r characters', () => {
+            expect(cleanMultilines('  line1  \r  line2  ')).toBe('line1\rline2');
+        });
+
+        it('should handle empty lines with only whitespace', () => {
+            expect(cleanMultilines('line1\n   \nline2')).toBe('line1\n\nline2');
+        });
+
+        it('should handle multiple consecutive empty lines with whitespace', () => {
+            expect(cleanMultilines('line1\n \n \n \nline2')).toBe('line1\n\n\n\nline2');
+        });
+
+        it('should return empty string for input with only whitespace', () => {
+            expect(cleanMultilines('   \n   \n   ')).toBe('\n\n');
+        });
+
+        it('should return empty string for empty input', () => {
+            expect(cleanMultilines('')).toBe('');
+        });
+
+        it('should not modify text without leading/trailing whitespace', () => {
+            expect(cleanMultilines('line1\nline2\nline3')).toBe('line1\nline2\nline3');
+        });
+
+        it('should handle single line with leading and trailing whitespace', () => {
+            expect(cleanMultilines('  single line  ')).toBe('single line');
+        });
+
+        it('should handle text with no line breaks', () => {
+            expect(cleanMultilines('  no line breaks  ')).toBe('no line breaks');
+        });
+
+        it('should preserve internal whitespace within lines', () => {
+            expect(cleanMultilines('  word1  word2  \n  word3  word4  ')).toBe('word1  word2\nword3  word4');
+        });
+
+        it('should handle mixed Unicode whitespace characters', () => {
+            const nbsp = '\u00A0'; // non-breaking space
+            const thinSpace = '\u2009'; // thin space
+            expect(cleanMultilines(`${nbsp}${thinSpace}line1${thinSpace}${nbsp}`)).toBe('line1');
+        });
+
+        it('should handle complex multiline text with various whitespace', () => {
+            const input = '  Line 1  \n\t\tLine 2\t\t\n   Line 3   \n\nLine 4';
+            const expected = 'Line 1\nLine 2\nLine 3\n\nLine 4';
+            expect(cleanMultilines(input)).toBe(expected);
+        });
+
+        it('should handle text with parentheses and whitespace', () => {
+            expect(cleanMultilines(' text \n \n \n\n\n\n([1])')).toBe('text\n\n\n\n\n\n([1])');
+        });
+
+        it('should handle Windows-style line endings with whitespace', () => {
+            expect(cleanMultilines('  line1  \r\n  line2  \r\n  line3  ')).toBe('line1\r\nline2\r\nline3');
+        });
     });
 
     describe('cleanSpacesBeforePeriod', () => {

@@ -56,13 +56,27 @@ export const cleanLiteralNewLines = (text: string) => {
 };
 
 /**
- * Removes trailing spaces from each line in a multiline string.
- * Example: " This is a line   \nAnother line   " becomes "This is a line\nAnother line".
+ * Removes horizontal whitespace (spaces, tabs, non-breaking spaces) from the beginning and end of each line,
+ * while preserving line breaks (\n and \r).
+ *
+ * Handles various types of horizontal whitespace:
+ * - Regular spaces (U+0020)
+ * - Tabs (U+0009)
+ * - Non-breaking spaces (U+00A0)
+ * - Other Unicode horizontal whitespace characters
+ *
  * @param {string} text - The input text to apply the rule to.
- * @returns {string} - The modified text with trailing spaces removed.
+ * @returns {string} - The modified text with horizontal whitespace trimmed from each line.
+ *
+ * @example
+ * ```typescript
+ * cleanMultilines("  line1  \n  line2  "); // "line1\nline2"
+ * cleanMultilines("\t\tindented\t\t"); // "indented"
+ * cleanMultilines("text\n \n \n"); // "text\n\n\n"
+ * ```
  */
 export const cleanMultilines = (text: string) => {
-    return text.replace(/^ +| +$/gm, '');
+    return text.replace(/^[^\S\r\n]+|[^\S\r\n]+$/gm, '');
 };
 
 /**

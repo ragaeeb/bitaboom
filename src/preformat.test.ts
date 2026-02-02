@@ -63,6 +63,138 @@ describe('preformatArabicText', () => {
         });
     });
 
+    describe('Unicode Whitespace Handling', () => {
+        it('should handle regular spaces', () => {
+            expect(preformatArabicText('word  word')).toBe('word word');
+        });
+
+        it('should handle non-breaking spaces (U+00A0)', () => {
+            const nbsp = '\u00A0';
+            expect(preformatArabicText(`word${nbsp}${nbsp}word`)).toBe('word word');
+        });
+
+        it('should handle thin spaces (U+2009)', () => {
+            const thinSpace = '\u2009';
+            expect(preformatArabicText(`word${thinSpace}${thinSpace}word`)).toBe('word word');
+        });
+
+        it('should handle hair spaces (U+200A)', () => {
+            const hairSpace = '\u200A';
+            expect(preformatArabicText(`word${hairSpace}${hairSpace}word`)).toBe('word word');
+        });
+
+        it('should handle zero-width spaces (U+200B)', () => {
+            const zwSpace = '\u200B';
+            expect(preformatArabicText(`word${zwSpace}${zwSpace}word`)).toBe('word word');
+        });
+
+        it('should handle narrow non-breaking spaces (U+202F)', () => {
+            const narrowNbsp = '\u202F';
+            expect(preformatArabicText(`word${narrowNbsp}${narrowNbsp}word`)).toBe('word word');
+        });
+
+        it('should handle medium mathematical spaces (U+205F)', () => {
+            const mediumSpace = '\u205F';
+            expect(preformatArabicText(`word${mediumSpace}${mediumSpace}word`)).toBe('word word');
+        });
+
+        it('should handle ideographic spaces (U+3000)', () => {
+            const ideographicSpace = '\u3000';
+            expect(preformatArabicText(`word${ideographicSpace}${ideographicSpace}word`)).toBe('word word');
+        });
+
+        it('should handle mixed Unicode whitespace', () => {
+            const nbsp = '\u00A0';
+            const thinSpace = '\u2009';
+            const hairSpace = '\u200A';
+            expect(preformatArabicText(`word${nbsp}${thinSpace}${hairSpace}word`)).toBe('word word');
+        });
+
+        it('should trim Unicode whitespace from start and end', () => {
+            const nbsp = '\u00A0';
+            expect(preformatArabicText(`${nbsp}${nbsp}word${nbsp}${nbsp}`)).toBe('word');
+        });
+
+        it('should handle Unicode whitespace in Arabic text', () => {
+            const nbsp = '\u00A0';
+            expect(preformatArabicText(`الله${nbsp}${nbsp}الرحمن`)).toBe('الله الرحمن');
+        });
+
+        it('should handle Unicode whitespace with leading/trailing on multiline', () => {
+            const nbsp = '\u00A0';
+            expect(
+                preformatArabicText(
+                    `${nbsp}الله على نبينا محمد وعلى آله وصحبه وسلم.\n${nbsp}${nbsp}${nbsp}${nbsp}${nbsp}${nbsp}كتبه: ربيع بن هادي العمير\n${nbsp}${nbsp}${nbsp}${nbsp}${nbsp}${nbsp}3/7/1437هـ\n`,
+                ),
+            ).toBe('الله على نبينا محمد وعلى آله وصحبه وسلم.\nكتبه: ربيع بن هادي العمير\n3/7/1437هـ');
+        });
+
+        it('should handle tabs mixed with Unicode whitespace', () => {
+            const nbsp = '\u00A0';
+            expect(preformatArabicText(`word\t${nbsp}\tword`)).toBe('word word');
+        });
+
+        it('should handle Unicode whitespace after newlines', () => {
+            const nbsp = '\u00A0';
+            expect(preformatArabicText(`line1\n${nbsp}${nbsp}line2`)).toBe('line1\nline2');
+        });
+
+        it('should handle Unicode whitespace before punctuation', () => {
+            const nbsp = '\u00A0';
+            expect(preformatArabicText(`word${nbsp}${nbsp}.`)).toBe('word.');
+        });
+
+        it('should handle Unicode whitespace inside brackets', () => {
+            const nbsp = '\u00A0';
+            expect(preformatArabicText(`(${nbsp}text${nbsp})`)).toBe('(text)');
+        });
+
+        it('should handle Unicode whitespace before and after quotes', () => {
+            const nbsp = '\u00A0';
+            expect(preformatArabicText(`word${nbsp}«quote»`)).toBe('word «quote»');
+        });
+
+        it('should handle Unicode whitespace in slash references', () => {
+            const nbsp = '\u00A0';
+            expect(preformatArabicText(`127${nbsp}/${nbsp}11`)).toBe('127/11');
+        });
+
+        it('should handle complex Arabic text with various Unicode whitespace', () => {
+            const nbsp = '\u00A0';
+            const thinSpace = '\u2009';
+            expect(
+                preformatArabicText(
+                    `${nbsp}الله${thinSpace}على${nbsp}نبينا${nbsp}محمد${thinSpace}وعلى${nbsp}آله${thinSpace}وصحبه${nbsp}وسلم.${nbsp}`,
+                ),
+            ).toBe('الله على نبينا محمد وعلى آله وصحبه وسلم.');
+        });
+
+        it('should preserve newlines while handling Unicode whitespace', () => {
+            const nbsp = '\u00A0';
+            expect(preformatArabicText(`text${nbsp}\n${nbsp}text`)).toBe('text\ntext');
+        });
+
+        it('should handle multiple consecutive newlines with Unicode whitespace', () => {
+            const nbsp = '\u00A0';
+            expect(preformatArabicText(`text\n${nbsp}\n${nbsp}\ntext`)).toBe('text\ntext');
+        });
+
+        it('should handle empty lines with only Unicode whitespace', () => {
+            const nbsp = '\u00A0';
+            expect(preformatArabicText(`line1\n${nbsp}${nbsp}${nbsp}\nline2`)).toBe('line1\nline2');
+        });
+
+        it('should handle trailing wow with Unicode whitespace', () => {
+            const nbsp = '\u00A0';
+            expect(preformatArabicText(`السلام${nbsp}و${nbsp}رحمة`)).toBe('السلام ورحمة');
+        });
+
+        it('should handle Arabic text with numbers and Unicode whitespace', () => {
+            const nbsp = '\u00A0';
+            expect(preformatArabicText(`الآية${nbsp}37`)).toBe('الآية 37');
+        });
+    });
+
     describe('removeSpaceInsideBrackets', () => {
         it('should remove the space in the brackets', () => {
             expect(preformatArabicText('( Fasting is during ) [ the ] winter.')).toBe(
