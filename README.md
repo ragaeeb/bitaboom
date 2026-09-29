@@ -44,7 +44,7 @@ console.log(plain); // "Bold italic link"
 
 ## Demo
 
-Try the interactive demo at https://bitaboom.surge.sh to explore every exported helper with real-time formatting.
+Try the interactive demo at https://bitaboom.surge.sh, or run the current source locally with the [demo guide](demo/README.md). Search helpers by name or purpose, try focused examples and mock manuscripts, and compare live input/output with ready-to-use code.
 
 ### High-performance Arabic preformatting
 
